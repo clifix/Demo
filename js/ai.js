@@ -1,7 +1,6 @@
 // ai.js – Groq + Gemini fallback with logging and error visibility
 
 (function() {
-  // Make sure API keys are available; fallback to empty strings if not
   const GROQ_KEY = typeof GROQ_API_KEY !== 'undefined' ? GROQ_API_KEY : '';
   const GEMINI_KEY = typeof GEMINI_API_KEY !== 'undefined' ? GEMINI_API_KEY : '';
 
@@ -88,20 +87,17 @@
 
     input.value = '';
 
-    // Add user message
     const userDiv = document.createElement('div');
     userDiv.className = 'ai-msg user';
     userDiv.textContent = msg;
     messagesEl.appendChild(userDiv);
 
-    // Typing indicator
     const typing = document.createElement('div');
     typing.className = 'ai-typing';
     typing.innerHTML = '<span></span><span></span><span></span>';
     messagesEl.appendChild(typing);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
-    // Check cache
     const cacheKey = msg.toLowerCase().trim();
     const cached = getCached(cacheKey);
     if (cached) {
@@ -125,12 +121,9 @@
     let fallback = false;
 
     try {
-      console.log('🤖 Sending to Groq...');
       reply = await callGroq(messages);
     } catch (e) {
-      console.warn('Groq failed:', e.message);
       try {
-        console.log('🔄 Falling back to Gemini...');
         const combined = `${systemPrompt}\n\nUser: ${msg}`;
         reply = await callGemini(combined);
         fallback = true;
@@ -167,14 +160,6 @@
     const isOpen = panel.classList.toggle('open');
     if (fab) fab.classList.toggle('open', isOpen);
 
-    if (iconContainer) {
-        if (isOpen) {
-          // Optional: change icon when open
-        } else {
-          // Optional: change icon when closed
-        }
-    }
-    
     if (isOpen && typeof refreshAIInsights === 'function') refreshAIInsights();
   };
 
@@ -196,16 +181,13 @@
   window.callAIForText = async function(promptText) {
     const systemPrompt = buildSystemPrompt();
     try {
-      // Try Groq first, then Gemini
       return await callGroq([{ role: 'system', content: systemPrompt }, { role: 'user', content: promptText }]);
     } catch {
       return await callGemini(systemPrompt + '\n\n' + promptText);
     }
   };
 
-  // ═══════════════════════════════════════════════════════════
-  // FIX: Ensure AI FAB click works even if inline onclick fails
-  // ═══════════════════════════════════════════════════════════
+  // ═══════════════════════ FIX: ensure FAB works on touch ═══════════════════════
   document.addEventListener('DOMContentLoaded', function() {
     const fab = document.getElementById('ai-fab');
     if (fab) {
