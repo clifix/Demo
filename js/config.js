@@ -10,7 +10,7 @@ const GROQ_API_KEY = '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';
 const GEMINI_API_KEY = 'AIzaSyAALMl4fmRGc2hoq6D3pkTjrN-KoREOrmU';
 
 // Backend API
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'https://clifix-backend.onrender.com';
 
 // WMO Codes Mapping
 const WMO_EMOJI = {
