@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CliFix | Eco-Weather Intelligence Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="eco.css">
+    <link rel="stylesheet" href="gamification.css">
+    <link rel="stylesheet" href="footer.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="e377e654-b6dc-48e4-b597-158490a4b2cc-removebg-preview.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-velocity@1.6.1/dist/leaflet-velocity.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+
+    <!-- PHASE 9: Weather Atmosphere Animations -->
+    <canvas id="weather-atmosphere"></canvas>
+    <div class="lightning-flash" id="lightning-flash"></div>
+
+    <!-- XP Float Container -->
+    <div id="xp-floats" aria-hidden="true"></div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+    <div id="clifix-preloader">
+        <div class="pre-particle" style="bottom:20%;left:15%;--dx:30px;--dy:100px;--dur:4x2s;--delay:0s;"></div>
+        <div class="pre-particle"
+            style="bottom:30%;left:25%;--dx:-20px;--dy:-80px;--dur:3.8s;--delay:0.6s;width:6px;height:6px;"></div>
+        <div class="pre-particle" style="bottom:25%;right:20%;--dx:-30px;--dy:-110px;--dur:4.5s;--delay:1s;"></div>
+        <div class="pre-particle"
+            style="bottom:40%;right:15%;--dx:20px;--dy:-70px;--dur:3.5s;--delay:0.3s;width:3px;height:3px;"></div>
+        <div class="pre-particle"
+            style="bottom:15%;left:40%;--dx:10px;--dy:-90px;--dur:4s;--delay:0.8s;width:5px;height:5px;"></div>
+        <div class="pre-particle" style="bottom:35%;right:35%;--dx:-15px;--dy:-60px;--dur:3.6s;--delay:1.4s;"></div>
+
+        <!-- Orbiting Logo -->
+        <div class="pre-orbit-wrapper">
+            <div class="pre-orbit-ring"></div>
+            <div class="pre-orbit-ring-2"></div>
+            <div class="pre-logo-center">
+                <img src="main logo.png" alt="pre-logo-image">
+            </div>
+        </div>
+
+        <!-- Brand -->
+        <div class="pre-brand">Cli<span>Fix</span></div>
+        <div class="pre-tagline">Eco-Weather Intelligence</div>
+
+        <!-- Progress -->
+        <div class="pre-progress-wrap">
+            <div class="pre-progress-bar" id="pre-bar"></div>
+        </div>
+        <div class="pre-status" id="pre-status">Initializing platform...</div>
+    </div>
+
+    <!-- EXTREME WEATHER ALERT BANNER -->
+    <div class="alert-banner" id="alert-banner">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span class="alert-banner-text" id="alert-banner-text"></span>
+        <button class="alert-banner-close" onclick="closeAlertBanner()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Climate News Ticker -->
+    <div class="climate-ticker">
+        <div class="ticker-inner" id="ticker-text">
+            <span>🌍 LIVE</span> Global CO₂ now at 424.6 ppm &nbsp;·&nbsp;
+            <span>🌡️</span> April 2026 on track to be warmest on record &nbsp;·&nbsp;
+            <span>🌊</span> Sea levels rose 4.1mm in 2025 &nbsp;·&nbsp;
+            <span>🌱</span> 3.5 billion trees planted globally this year &nbsp;·&nbsp;
+            <span>⚡</span> Renewables now provide 32% of global electricity &nbsp;·&nbsp;
+            <span>🔥</span> Arctic sea ice at record low extent for April &nbsp;·&nbsp;
+            <span>🌿</span> UN reports 40% biodiversity loss since 1970 &nbsp;·&nbsp;
+            <span>💧</span> 2 billion people lack safe drinking water access &nbsp;·&nbsp;
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="#" class="logo">
+                <div class="logo-image">
+                    <img src="main logo.png" alt="CliFix Logo">
+                </div>
+                <span class="logo-text">Cli<span>Fix</span></span>
+            </a>
+            <nav>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="#home" class="active">Home</a></li>
+                    <li><a href="#weather">Weather</a></li>
+                    <li><a href="#air-quality">Air Quality</a></li>
+                    <li><a href="#climate-report">Climate</a></li>
+                    <li><a href="#calculator">Calculator</a></li>
+                    <li><a href="#eco-tips">Eco Tips</a></li>
+                    <li><a href="#climate-impact">Tracker</a></li>
+                    <li><a href="#gamified-eco">Arena</a></li>
+                </ul>
+            </nav>
+            <div class="header-right">
+                <div class="live-clock" id="live-clock">00:00:00</div>
+                <div id="auth-buttons">
+                    <button class="btn-primary" onclick="openAuthModal('login')"><i class="fas fa-leaf"></i>
+                        Login</button>
+                </div>
+                <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero">
+    </section>
+
+    <hr class="divider">
+
+    <!-- WEATHER DASHBOARD -->
+    <section id="weather" class="weather-section">
+        <div class="section-wrap">
+            <div class="section-header">
+                <div class="section-tag">Real-Time Data</div>
+                <h2>Weather Dashboard</h2>
+                <p>Live atmospheric conditions powered by Open-Meteo</p>
+            </div>
+            <div class="search-bar">
+                <input type="text" placeholder="Search city or location..." id="weather-search-input">
+                <button id="weather-search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="weather-grid">
+                <div class="glass-card weather-main-card">
+                    <div>
+                        <span class="weather-icon-large" id="today-emoji">🌤️</span>
+                        <div class="current-temp" id="today-temp">--°C</div>
+                        <div class="condition-text" id="today-condition">Loading weather...</div>
+                        <div class="temp-range">
+                            <span class="temp-max" id="today-max">↑ --°C</span>
+                            <span class="temp-min" id="today-min">↓ --°C</span>
+                        </div>
+                    </div>
+                    <div class="weather-meta-grid">
+                        <div class="weather-meta-item">
+                            <i class="fas fa-wind"></i>
+                            <div>
+                                <div class="meta-label">Wind</div>
+                                <div class="meta-val" id="today-wind">-- km/h</div>
+                            </div>
+                        </div>
+                        <div class="weather-meta-item">
+                            <i class="fas fa-tint"></i>
+                            <div>
+                                <div class="meta-label">Humidity</div>
+                                <div class="meta-val" id="today-humidity">--%</div>
+                            </div>
+                        </div>
+                        <div class="weather-meta-item">
+                            <i class="fas fa-eye"></i>
+                            <div>
+                                <div class="meta-label">Visibility</div>
+                                <div class="meta-val" id="today-visibility">-- km</div>
+                            </div>
+                        </div>
+                        <div class="weather-meta-item">
+                            <i class="fas fa-compress-alt"></i>
+                            <div>
+                                <div class="meta-label">Pressure</div>
+                                <div class="meta-val" id="today-pressure">-- hPa</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- PHASE 2: Extra metrics -->
+                    <div class="weather-meta-extra">
+                        <div class="weather-meta-item">
+                            <i class="fas fa-thermometer-half" style="color:#42A5F5"></i>
+                            <div>
+                                <div class="meta-label">Dew Point</div>
+                                <div class="meta-val" id="extra-dew">--°C</div>
+                            </div>
+                        </div>
+                        <div class="weather-meta-item">
+                            <i class="fas fa-cloud" style="color:#90A4AE"></i>
+                            <div>
+                                <div class="meta-label">Cloud Cover</div>
+                                <div class="meta-val" id="extra-cloud">--%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card hourly-card">
+                    <h3>Hourly Forecast</h3>
+                    <div class="hourly-scroll" id="hourly-scroll">
+                        <div style="color:var(--text-muted);font-size:0.85rem;padding:20px;">Loading...</div>
+                    </div>
+                    <h3 style="margin-top:24px;">7-Day Forecast</h3>
+                    <div class="weekly-list" id="weekly-list">
+                        <div style="color:var(--text-muted);font-size:0.85rem;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+            <!-- PHASE 3: Mini Charts -->
+            <div class="mini-charts-strip">
+                <div class="mini-chart-card">
+                    <h4>24h Temperature Curve</h4>
+                    <canvas id="mini-temp-chart"></canvas>
+                </div>
+                <div class="mini-chart-card">
+                    <h4>Rain Probability %</h4>
+                    <canvas id="mini-rain-chart"></canvas>
+                </div>
+                <div class="mini-chart-card">
+                    <h4>Wind Speed Trend</h4>
+                    <canvas id="mini-wind-chart"></canvas>
+                </div>
+            </div>
+            <div class="stat-strip">
+                <div class="stat-pill">
+                    <div class="stat-pill-icon"><i class="fas fa-temperature-high"></i></div>
+                    <div class="stat-pill-body">
+                        <div class="stat-pill-label">Feels Like</div>
+                        <div class="stat-pill-value" id="strip-feelslike">--°C</div>
+                        <div class="stat-pill-compare">Apparent temp</div>
+                    </div>
+                </div>
+                <div class="stat-pill">
+                    <div class="stat-pill-icon"><i class="fas fa-sun"></i></div>
+                    <div class="stat-pill-body">
+                        <div class="stat-pill-label">UV Index</div>
+                        <div class="stat-pill-value" id="strip-uv">--</div>
+                        <div class="stat-pill-compare" id="strip-uv-label">–</div>
+                    </div>
+                </div>
+                <div class="stat-pill">
+                    <div class="stat-pill-icon"><i class="fas fa-cloud-rain"></i></div>
+                    <div class="stat-pill-body">
+                        <div class="stat-pill-label">Precip. Prob.</div>
+                        <div class="stat-pill-value" id="strip-precip">--%</div>
+                        <div class="stat-pill-compare">Today</div>
+                    </div>
+                </div>
+                <div class="stat-pill">
+                    <div class="stat-pill-icon"><i class="fas fa-leaf"></i></div>
+                    <div class="stat-pill-body">
+                        <div class="stat-pill-label">Eco Score</div>
+                        <div class="stat-pill-value" id="strip-eco">--</div>
+                        <div class="stat-pill-compare" id="strip-eco-label">Computing...</div>
+                    </div>
+                </div>
+            </div>
+            <!-- PHASE 4: Smart Insights -->
+            <div class="smart-insights-panel" style="margin-top:24px;">
+                <div class="insights-header">
+                    <div class="pulse-dot"></div>
+                    <span>Smart Weather Insights</span>
+                </div>
+                <div class="insight-chips-row" id="insight-chips-row">
+                    <div class="insight-chip-v2 info"><i class="fas fa-spinner fa-spin"></i> <span>Analyzing
+                            conditions...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PHASE 7: Climate Impact Today -->
+    <section class="climate-impact-section" style="background:rgba(0,10,5,0.3);">
+        <div class="section-wrap">
+            <div class="section-header">
+                <div class="section-tag">Climate Intelligence</div>
+                <h2>🌍 Climate Impact Today</h2>
+                <p>How today's conditions compare to historical data — connecting weather to climate change</p>
+            </div>
+            <div class="climate-impact-grid" id="climate-impact-grid">
+                <div class="climate-impact-card normal">
+                    <div class="impact-icon">🌡️</div>
+                    <div class="impact-label">Temperature</div>
+                    <div class="impact-value" style="font-size:1.2rem;color:#8FAD8A;">Loading...</div>
+                </div>
+            </div>
+            <div class="climate-impact-note">
+                <i class="fas fa-info-circle"></i>
+                <span id="climate-impact-note-text">Comparing today's weather with same-period data from the previous
+                    year to
+                    reveal climate trends.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE MAP -->
+    <section id="map-section" class="map-section">
+        <div class="section-wrap">
+            <div class="section-header">
+                <div class="section-tag">Geospatial</div>
+                <h2>Interactive Weather Map</h2>
+                <p>Explore real-time climate conditions across your region and globally</p>
+            </div>
+            <div class="map-controls">
+                <button class="map-btn active" id="btn-standard"><i class="fas fa-map"></i> Standard</button>
+                <button class="map-btn" id="btn-satellite"><i class="fas fa-satellite"></i> Satellite</button>
+                <button class="map-btn" id="btn-locate"><i class="fas fa-crosshairs"></i> My Location</button>
+                <button class="map-btn" id="btn-temp"><i class="fas fa-temperature-high"></i> Temp</button>
+                <button class="map-btn" id="btn-wind"><i class="fas fa-wind"></i> Wind</button>
+                <button class="map-btn" id="btn-precip"><i class="fas fa-cloud-rain"></i> Rain</button>
+                <button class="map-btn" id="btn-clouds"><i class="fas fa-cloud"></i> Clouds</button>
+                <button class="map-btn" id="btn-radar"><i class="fas fa-satellite-dish"></i> Radar</button>
+                <button class="map-btn" id="btn-aqi"><i class="fas fa-smog"></i> AQI</button>
+                <button class="map-btn" id="btn-alert"><i class="fas fa-exclamation-triangle"></i> Alerts</button>
+                <button class="map-btn" id="btn-follow-me"><i class="fas fa-location-arrow"></i> Follow Me</button>
+            </div>
+            <form id="map-search-form" class="map-search-form" autocomplete="off">
+                <input type="text" id="map-search-input" placeholder="Search city or location..." autocomplete="off">
+                <button type="submit" aria-label="Search"><i class="fas fa-search"></i></button>
+            </form>
+            <div id="radar-slider-container"
+                style="display: none; align-items: center; gap: 10px; padding: 6px 12px; margin-bottom: 8px;">
+                <span style="color: #69f0ae; font-size: 0.8rem;" id="radar-time-label">Now</span>
+                <input type="range" id="radar-slider" min="0" max="0" value="0" step="1"
+                    style="flex: 1; accent-color: #06b6d4;">
+            </div>
+            <div id="map"></div>
+        </div>
+    </section>
+
+    <!-- AIR QUALITY -->
+    <section id="air-quality" class="aqi-section">
+        <div class="section-wrap">
+            <div class="section-header">
+                <div class="section-tag">Atmospheric</div>
+                <h2>Air Quality Index</h2>
+                <p>Real‑time pollution monitoring, health advisories & AI insights</p>
+            </div>
+
+            <!-- Main display + dominant + health -->
+            <div class="aqi-layout">
+                <div class="aqi-main-card">
+                    <div class="aqi-number" id="aqi-value">--</div>
+                    <div class="aqi-label good" id="aqi-category">Loading...</div>
+                    <div class="aqi-advice" id="aqi-advice">Fetching air quality data...</div>
+                    <div class="dominant-pollutant" id="dominant-pollutant" style="margin-top: 12px;">
+                        <span id="dominant-text"></span>
+                    </div>
+
+                    <!-- Health Impact Groups -->
+                    <div class="health-impact" id="health-impact" style="margin-top: 16px;">
+                        <div class="health-chip" id="health-children"><i class="fas fa-child"></i> Children: --</div>
+                        <div class="health-chip" id="health-asthma"><i class="fas fa-lungs"></i> Asthma: --</div>
+                        <div class="health-chip" id="health-activity"><i class="fas fa-running"></i> Activity: --</div>
+                    </div>
+                </div>
+
+                <div class="aqi-gauge-card">
+                    <h3>AQI Gauge</h3>
+                    <canvas id="aqiGauge" width="220" height="220"></canvas>
+                </div>
+
+                <div class="aqi-trend-card">
+                    <h3>24h Trend</h3>
+                    <canvas id="aqiTrendChart" width="260" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Pollutant Breakdown Table -->
+            <div class="pollutants-table-wrap">
+                <h3>Pollutant Breakdown</h3>
+                <table class="pollutants-table">
+                    <thead>
+                        <tr>
+                            <th>Pollutant</th>
+                            <th>Level (µg/m³)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PM2.5</td>
+                            <td id="pm25-level">--</td>
+                            <td id="pm25-status">--</td>
+                        </tr>
+                        <tr>
+                            <td>PM10</td>
+                            <td id="pm10-level">--</td>
+                            <td id="pm10-status">--</td>
+                        </tr>
+                        <tr>
+                            <td>NO₂</td>
+                            <td id="no2-level">--</td>
+                            <td id="no2-status">--</td>
+                        </tr>
+                        <tr>
+                            <td>O₃</td>
+                            <td id="o3-level">--</td>
+                            <td id="o3-status">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- AI Explanation -->
+            <div class="ai-explain-card" id="ai-explain-card">
+                <div class="ai-explain-header">
+                    <i class="fas fa-robot"></i> AI Explanation
+                    <button onclick="requestAIExplanation()" id="ai-explain-btn" class="btn-outline"
+                        style="margin-left:auto; padding:6px 14px;">Explain</button>
+                </div>
+                <p id="ai-explain-text">Click "Explain" to understand today's air quality.</p>
+            </div>
+
+            <!-- Personal Alert Settings -->
+            <div class="aqi-alerts-card">
+                <h3>Personal Alerts</h3>
+                <div class="alert-toggle-row">
+                    <label for="alert-toggle-aqi">Notify me when AQI exceeds:</label>
+                    <input type="number" id="alert-threshold" value="100" min="0" max="500" style="width:60px;">
+                    <button id="enable-aqi-alerts" class="btn-outline">Enable</button>
+                    <button id="disable-aqi-alerts" class="btn-outline">Disable</button>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted);" id="alert-status"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CLIMATE REPORT -->
+    <section id="climate-report" class="climate-section">
+        <div class="section-wrap">
+            <div class="section-header">
+                <div class="section-tag">Analytics</div>
+                <h2>Weekly Climate Report</h2>
+                <p>Local temperature trend & global CO₂ — this week vs last week</p>
+            </div>
+            <div class="location-tag" id="location-display">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Detecting location...</span>
+            </div>
+
+            <div class="report-cards-grid">
+                <!-- Temperature Chart -->
+                <div class="report-card">
+                    <h3>🌡️ Local Temperature (Daily)</h3>
+                    <div class="chart-container">
+                        <canvas id="tempComparisonChart"></canvas>
+                    </div>
+                    <p class="chart-legend-note" id="temp-compare-summary">Loading temperature data...</p>
+                </div>
+
+                <!-- CO₂ Chart -->
+                <div class="report-card">
+                    <h3>🌍 Global CO₂ (Mauna Loa, daily)</h3>
+                    <div class="chart-container">
+                        <canvas id="co2ComparisonChart"></canvas>
+                    </div>
+                    <p class="chart-legend-note" id="co2-compare-summary">Loading CO₂ data...</p>
+                </div>
+            </div>
+
+            <div class="report-actions">
+                <button class="dl-btn" id="download-btn-phase1"><i class="fas fa-download"></i> Download Report</button>
+                <button class="share-btn" id="share-btn-phase1"><i class="fas fa-share-alt"></i> Share</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CARBON FOOTPRINT CALCULATOR -->
+    <section id="calculator" class="calc-section">
+        <div class="section-wrap">
+            <div class="section-header">
+                <div class="section-tag">Personal Impact</div>
+                <h2>Carbon Footprint Calculator</h2>
+                <p>Estimate your daily environmental impact in seconds</p>
+            </div>
+            <div class="calc-layout">
+                <div class="calc-form">
+                    <h3>Your Daily Activities</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Primary Transport</label>
+                            <select id="calc-transport">
+                                <option value="0">🚲 Bicycle / Walking</option>
+                                <option value="0.5">🚌 Public Bus</option>
+                                <option value="0.8">🚆 Train / Metro</option>
+                                <option value="2.5" selected>🚗 Private Car (petrol)</option>
+                                <option value="1.2">🚗 Private Car (electric)</option>
+                                <option value="3.5">✈️ Air Travel</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Distance (km/day)</label>
+                            <input type="number" id="calc-distance" value="15" min="0" max="1000">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Diet Type</label>
+                            <select id="calc-diet">
+                                <option value="0.5">🥗 Vegan</option>
+                                <option value="1.5">🥦 Vegetarian</option>
+                                <option value="3.5" selected>🍗 Omnivore</option>
+                                <option value="6.0">🥩 Meat-heavy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Energy Source</label>
+                            <select id="calc-energy">
+                                <option value="0.2">☀️ Solar / Renewables</option>
+                                <option value="1.0" selected>⚡ Mixed Grid</option>
+                                <option value="2.5">🪨 Coal-heavy</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Monthly Flights</label>
+                            <select id="calc-flights">
+                                <option value="0" selected>✈️ None</option>
+                                <option value="1">1 short-haul</option>
+                                <option value="3">1 long-haul</option>
+                                <option value="8">Multiple flights</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Shopping Habits</label>
+                            <select id="calc-shopping">
+                                <option value="0.3">♻️ Secondhand / Minimal</option>
+                                <option value="1.0" selected>🛍️ Average consumer</option>
+                                <option value="2.5">🏪 Frequent shopper</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary" id="calc-btn"
+                        style="width:100%;justify-content:center;padding:14px;margin-top:8px;">
+                        <i class="fas fa-calculator"></i> Calculate Footprint
+                    </button>
+                </div>
+                <div class="calc-result-panel">
+                    <h3>Your Footprint</h3>
+                    <div class="footprint-score">
+                        <div class="footprint-number" id="footprint-number" style="color:var(--jade)">0.0</div>
+                        <div class="footprint-unit">kg CO₂e / day</div>
+                        <div id="footprint-compare" style="font-size:0.82rem;color:var(--text-muted);margin-top:8px;">
+                            Click
+                            calculate to get started</div>
+                    </div>
+                    <div class="footprint-bars-detail">
+                        <div class="fb-row">
+                            <span class="fb-row-label">Transport</span>
+                            <div class="fb-bar">
+                                <div class="fb-bar-fill" id="fb-transport" style="background:#FF7043;width:0%"></div>
+                            </div>
+                            <span class="fb-val" id="fv-transport">0 kg</span>
+                        </div>
+                        <div class="fb-row">
+                            <span class="fb-row-label">Diet</span>
+                            <div class="fb-bar">
+                                <div class="fb-bar-fill" id="fb-diet" style="background:var(--jade-dim);width:0%"></div>
+                            </div>
+                            <span class="fb-val" id="fv-diet">0 kg</span>
+                        </div>
+                        <div class="fb-row">
+                            <span class="fb-row-label">Energy</span>
+                            <div class="fb-bar">
+                                <div class="fb-bar-fill" id="fb-energy" style="background:var(--amber);width:0%"></div>
+                            </div>
+                            <span class="fb-val" id="fv-energy">0 kg</span>
+                        </div>
+                        <div class="fb-row">
+                            <span class="fb-row-label">Flights</span>
+                            <div class="fb-bar">
+                                <div class="fb-bar-fill" id="fb-flights" style="background:var(--sky);width:0%"></div>
+                            </div>
+                            <span class="fb-val" id="fv-flights">0 kg</span>
+                        </div>
+                        <div class="fb-row">
+                            <span class="fb-row-label">Shopping</span>
+                            <div class="fb-bar">
+                                <div class="fb-bar-fill" id="fb-shopping" style="background:#AB47BC;width:0%"></div>
+                            </div>
+                            <span class="fb-val" id="fv-shopping">0 kg</span>
+                        </div>
+                    </div>
+                    <div
+                        style="margin-top:24px;padding:16px;background:var(--jade-soft);border:1px solid var(--border);border-radius:10px;">
+                        <div
+                            style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px;">
+                            💡 Top Tip</div>
+                        <div id="calc-tip" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6;">Fill out
+                            the form
+                            and calculate to get a personalized eco tip.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ECO IMPACT TRACKER -->
+    <section id="climate-impact" class="tracker-section">
+        <div class="section-wrap">
+            <div class="section-header">
+                <div class="section-tag">Personal Impact</div>
+                <h2>My Eco Impact</h2>
+                <p>Track, measure, and grow your environmental contributions</p>
+            </div>
+            <div id="login-prompt-wrap">
+                <div class="login-prompt-card">
+                    <div class="login-prompt-icon">🌿</div>
+                    <h3>Track Your Green Journey</h3>
+                    <p>Log eco-friendly actions, earn badges, and see your real environmental impact grow over time.</p>
+                    <button class="btn-primary" onclick="openAuthModal('login')"
+                        style="margin:0 auto;display:inline-flex;"><i class="fas fa-user"></i> Login to Start
+                        Tracking</button>
+                </div>
+            </div>
+            <div id="tracker-dashboard" style="display:none;">
+                <div class="tracker-profile">
+                    <div class="avatar-ring">🌱</div>
+                    <div>
+                        <div class="profile-name" id="username-display">Eco Warrior</div>
+                        <div class="badge-row">
+                            <span class="eco-badge bronze" id="rank-badge">Bronze</span>
+                            <span class="eco-badge streak" id="streak-badge">🔥 0-day streak</span>
+                            <span class="eco-badge tree" id="tree-badge">🌳 0 trees</span>
+                        </div>
+                    </div>
+                    <div style="margin-left:auto;text-align:right;">
+                        <div
+                            style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;">
+                            Total Points</div>
+                        <div style="font-family:var(--font-display);font-size:2.2rem;font-weight:800;color:var(--jade);"
+                            id="total-points">0</div>
+                    </div>
+                </div>
+                <div class="impact-stats">
+                    <div class="impact-card">
+                        <div class="impact-icon"><i class="fas fa-leaf"></i></div>
+                        <div>
+                            <div class="impact-label">Carbon Saved</div>
+                            <div class="impact-value" id="carbon-saved">0 kg</div>
+                            <div class="impact-equiv" id="carbon-equiv">≈ 0 trees</div>
+                        </div>
+                    </div>
+                    <div class="impact-card">
+                        <div class="impact-icon"><i class="fas fa-bolt"></i></div>
+                        <div>
+                            <div class="impact-label">Energy Saved</div>
+                            <div class="impact-value" id="energy-saved">0 kWh</div>
+                            <div class="impact-equiv" id="energy-equiv">≈ 0 days of TV</div>
+                        </div>
+                    </div>
+                    <div class="impact-card">
+                        <div class="impact-icon"><i class="fas fa-tint"></i></div>
+                        <div>
+                            <div class="impact-label">Water Saved</div>
+                            <div class="impact-value" id="water-saved">0 L</div>
+                            <div class="impact-equiv" id="water-equiv">≈ 0 showers</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tracker-two-col">
+                    <div class="score-card">
+                        <h3>Green Score</h3>
+                        <div class="ring-wrap">
+                            <svg width="140" height="140" viewBox="0 0 140 140">
+                                <circle class="ring-bg" stroke-width="12" fill="transparent" r="58" cx="70" cy="70" />
+                                <circle class="ring-fill" stroke-width="12" stroke-dasharray="364"
+                                    stroke-dashoffset="364" fill="transparent" r="58" cx="70" cy="70" id="score-ring" />
+                            </svg>
+                            <div class="ring-text" id="green-score">0</div>
+                        </div>
+                        <p class="score-subtext" id="score-subtext">Complete eco actions to grow your score</p>
+                    </div>
+                    <div class="challenge-card">
+                        <h3>Weekly Challenge</h3>
+                        <div class="challenge-desc" id="challenge-description">Loading challenge...</div>
+                        <div class="challenge-progress">
+                            <div class="cp-bar">
+                                <div class="cp-fill" id="challenge-progress" style="width:0%"></div>
+                            </div>
+                            <div class="cp-stats"><span id="challenge-current">0</span> / <span
+                                    id="challenge-target">10</span>
+                                actions completed</div>
+                        </div>
+                        <button class="claim-btn" id="claim-reward-btn" disabled>Complete Challenge to Claim
+                            Reward</button>
+                    </div>
+                </div>
+                <div class="actions-header">
+                    <h3>Log Eco Actions</h3>
+                    <div class="streak-badge"><i class="fas fa-fire"></i> <span id="streak-count">0-day streak</span>
+                    </div>
+                </div>
+                <div class="actions-grid" id="actions-grid"></div>
+                <h3
+                    style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;margin-bottom:16px;">
+                    Achievements
+                </h3>
+                <div class="achievements-grid" id="achievements-grid"></div>
+                <div class="timeline-wrap">
+                    <h3>Impact History</h3>
+                    <div class="timeline" id="timeline">
+                        <div style="color:var(--text-muted);font-size:0.85rem;">No actions logged yet. Start above!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+     GAMIFIED ECO ARENA
+     ═══════════════════════════════════════════════════════════ -->
+
+    <section id="gamified-eco" class="gam-section">
+        <div class="section-wrap">
+
+            <!-- Section Header -->
+            <div class="section-header">
+                <div class="section-tag">⚔️ Eco Arena</div>
+                <h2>Missions &amp; <em>Rankings</em></h2>
+                <p>Level up your impact. Complete challenges. Compete globally for the planet.</p>
+            </div>
+
+            <!-- Notification Strip (dynamic) -->
+            <div class="gam-notif-strip" id="gam-notif-strip"></div>
+
+            <!-- ── ROW 1: Level Card + Streak Calendar + Today Stats ── -->
+            <div class="gam-top-grid">
+
+                <!-- Level & XP Card -->
+                <div class="glass-card gam-level-card">
+                    <!-- Animated XP Ring -->
+                    <div class="gam-level-ring-wrap">
+                        <svg class="gam-xp-ring" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <circle class="gam-ring-bg" cx="60" cy="60" r="52" stroke-width="8" fill="none" />
+                            <circle class="gam-ring-fill" id="gam-ring-fill" cx="60" cy="60" r="52" stroke-width="8"
+                                fill="none" stroke-dasharray="327" stroke-dashoffset="327" stroke-linecap="round" />
+                        </svg>
+                        <div class="gam-level-center">
+                            <div class="gam-level-num" id="gam-level-num">1</div>
+                            <div class="gam-level-lbl">LEVEL</div>
+                        </div>
+                    </div>
+
+                    <!-- Level Info -->
+                    <div class="gam-level-info">
+                        <div class="gam-level-title" id="gam-level-title">Seedling</div>
+                        <div class="gam-xp-bar-wrap">
+                            <div class="gam-xp-bar-track">
+                                <div class="gam-xp-bar-fill" id="gam-xp-bar-fill" style="width:0%"></div>
+                            </div>
+                            <div class="gam-xp-nums">
+                                <span id="gam-xp-current">0</span> / <span id="gam-xp-next">100</span> XP to next level
+                            </div>
+                        </div>
+                        <div class="gam-total-xp">Total XP: <strong id="gam-total-xp">0</strong></div>
+                        <div class="gam-earn-btns">
+                            <button class="gam-earn-btn" id="gam-daily-login-btn"
+                                onclick="GamifySystem.earnXP('daily_login')">
+                                <i class="fas fa-calendar-check"></i> Daily Login +10 XP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Streak Calendar Card -->
+                <div class="glass-card gam-streak-card">
+                    <div class="gam-flame-num" id="gam-streak-num">🔥 0</div>
+                    <div class="gam-streak-label">Day Streak</div>
+                    <div class="gam-cal-week" id="gam-cal-week">
+                        <!-- Rendered by JS -->
+                    </div>
+                    <div class="gam-streak-note" id="gam-streak-note">
+                        Log in daily to maintain your streak!
+                    </div>
+                </div>
+
+                <!-- Today's Impact Card -->
+                <div class="glass-card gam-today-card">
+                    <div class="gam-card-title">Today's Impact</div>
+                    <div class="gam-today-grid">
+                        <div class="gam-today-item">
+                            <div class="gam-today-val" id="gam-today-xp">0</div>
+                            <div class="gam-today-label">XP Earned</div>
+                        </div>
+                        <div class="gam-today-item">
+                            <div class="gam-today-val" id="gam-today-actions">0</div>
+                            <div class="gam-today-label">Actions</div>
+                        </div>
+                        <div class="gam-today-item">
+                            <div class="gam-today-val" id="gam-today-rank">#--</div>
+                            <div class="gam-today-label">Rank</div>
+                        </div>
+                    </div>
+                    <div class="gam-next-level-bar">
+                        <div class="gam-next-label">
+                            Next level in <span id="gam-xp-to-next">100</span> XP
+                        </div>
+                    </div>
+
+                    <!-- Quick XP earn shortcuts -->
+                    <div
+                        style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+                        <button class="gam-earn-btn" onclick="GamifySystem.earnXP('view_report')"
+                            title="Earn XP for checking the climate report">
+                            <i class="fas fa-chart-line"></i> View Report +15
+                        </button>
+                        <button class="gam-earn-btn" onclick="GamifySystem.earnXP('check_aqi')"
+                            title="Earn XP for checking air quality">
+                            <i class="fas fa-wind"></i> Check AQI +5
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ROW 2: Daily Challenges + Weekly Missions ─── -->
+            <div class="gam-mid-grid">
+
+                <!-- Daily Challenges -->
+                <div class="glass-card gam-daily-card">
+                    <div class="gam-section-title">
+                        <i class="fas fa-bolt"></i>
+                        Daily Challenges
+                        <span class="gam-reset-timer" id="gam-daily-timer">Resets in 00:00:00</span>
+                    </div>
+                    <div class="gam-challenges-list" id="gam-daily-challenges">
+                        <!-- Rendered by JS -->
+                        <div style="color:var(--text-muted);font-size:0.85rem;padding:12px 0;">
+                            Loading challenges...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Missions -->
+                <div class="glass-card gam-weekly-card">
+                    <div class="gam-section-title">
+                        <i class="fas fa-star"></i>
+                        Weekly Missions
+                        <span class="gam-reset-timer" id="gam-weekly-timer">Resets Monday</span>
+                    </div>
+                    <div class="gam-challenges-list" id="gam-weekly-missions">
+                        <!-- Rendered by JS -->
+                        <div style="color:var(--text-muted);font-size:0.85rem;padding:12px 0;">
+                            Loading missions...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── ROW 3: Leaderboard + Achievement Gallery ─── -->
+            <div class="gam-bot-grid">
+
+                <!-- Leaderboard -->
+                <div class="glass-card gam-leaderboard-card">
+                    <div class="gam-section-title">
+                        <i class="fas fa-trophy"></i>
+                        Leaderboard
+                    </div>
+                    <div class="gam-lb-tabs">
+                        <button class="gam-lb-tab active"
+                            onclick="GamifySystem.switchLeaderboard('global')">Global</button>
+                        <button class="gam-lb-tab" onclick="GamifySystem.switchLeaderboard('weekly')">This
+                            Week</button>
+                    </div>
+                    <!-- Podium (Top 3) -->
+                    <div class="gam-lb-podium" id="gam-lb-podium">
+                        <!-- Rendered by JS -->
+                    </div>
+                    <!-- Ranked list (4–10) -->
+                    <div class="gam-lb-list" id="gam-lb-list">
+                        <!-- Rendered by JS -->
+                    </div>
+                    <!-- My Rank -->
+                    <div class="gam-my-rank" id="gam-my-rank">
+                        Log in to see your rank
+                    </div>
+                </div>
+
+                <!-- Achievement Gallery -->
+                <div class="glass-card gam-badges-card">
+                    <div class="gam-section-title">
+                        <i class="fas fa-medal"></i>
+                        Achievement Gallery
+                    </div>
+                    <div class="gam-badges-grid" id="gam-badges-grid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── LEVEL UP OVERLAY ───────────────────────────────── -->
+        <div class="gam-levelup-overlay" id="gam-levelup-overlay" onclick="GamifySystem.closeLevelUp()">
+            <div class="gam-levelup-burst">
+                <div class="gam-levelup-ring"></div>
+                <div class="gam-levelup-text">
+                    <div class="gam-levelup-title">LEVEL UP!</div>
+                    <div class="gam-levelup-sub" id="gam-levelup-sub">You reached Level 2!</div>
+                    <button class="gam-levelup-close"
+                        onclick="event.stopPropagation(); GamifySystem.closeLevelUp()">
+                        🎉 Awesome!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ECO TIPS (Gamified Arena) -->
+    <section id="eco-tips" class="eco-section">
+        <div class="eco-wrap">
+
+            <div class="eco-section-header">
+                <div class="section-tag">🌱 Gamified Habits</div>
+                <h2>Eco Tips <span class="jade">Arena</span></h2>
+                <p>Read tips, complete actions, earn XP — build the habit that saves the planet.</p>
+            </div>
+
+            <!-- TOP ROW: Player Card + Daily Challenge -->
+            <div class="eco-top-row">
+
+                <div class="eco-card player-card">
+                    <div class="player-header">
+                        <div class="player-avatar" id="eco-avatar">🌱</div>
+                        <div class="player-meta">
+                            <div class="player-name" id="eco-player-name">Eco Explorer</div>
+                            <div class="level-badge">
+                                <span class="level-num" id="eco-level-num">1</span>
+                                <span class="level-title" id="eco-level-title">Seedling</span>
+                            </div>
+                        </div>
+                        <div class="streak-pill" id="eco-streak-pill">
+                            <span class="fire-icon">🔥</span>
+                            <span id="eco-streak-num">0</span>
+                            <span class="streak-label">day streak</span>
+                        </div>
+                    </div>
+                    <div class="xp-bar-wrap">
+                        <div class="xp-bar-labels">
+                            <span class="xp-current" id="eco-xp-current">0 XP</span>
+                            <span class="xp-next" id="eco-xp-next">Next: 100 XP</span>
+                        </div>
+                        <div class="xp-bar-track">
+                            <div class="xp-bar-fill" id="eco-xp-bar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="player-stats-row">
+                        <div class="pstat">
+                            <i class="fas fa-bolt"></i>
+                            <span id="eco-total-xp">0</span>
+                            <small>Total XP</small>
+                        </div>
+                        <div class="pstat">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="eco-completed-count">0</span>
+                            <small>Completed</small>
+                        </div>
+                        <div class="pstat">
+                            <i class="fas fa-leaf"></i>
+                            <span id="eco-tips-read">0</span>
+                            <small>Tips Read</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="eco-card challenge-card">
+                    <div class="challenge-header">
+                        <span class="challenge-icon" id="challenge-icon">⚡</span>
+                        <div>
+                            <div class="challenge-label">Daily Challenge</div>
+                            <div class="challenge-title" id="challenge-title">Loading...</div>
+                        </div>
+                        <div class="challenge-xp-badge">+30 XP</div>
+                    </div>
+                    <p class="challenge-desc" id="challenge-desc">Complete today's eco challenge to earn bonus XP.</p>
+                    <div class="challenge-prog-wrap">
+                        <div class="challenge-prog-bar">
+                            <div class="challenge-prog-fill" id="challenge-prog-fill" style="width:0%"></div>
+                        </div>
+                        <span class="challenge-prog-text" id="challenge-prog-text">0 / 1</span>
+                    </div>
+                    <button class="eco-btn claim-btn" id="challenge-claim-btn" disabled>
+                        Complete Challenge to Claim
+                    </button>
+                    <div class="challenge-lock-msg" id="challenge-lock-msg" style="display:none">
+                        <i class="fas fa-lock"></i> Come back tomorrow for a new challenge!
+                    </div>
+                </div>
+
+            </div><!-- /eco-top-row -->
+
+            <!-- SMART DAILY TIP -->
+            <div class="eco-card smart-tip-card">
+                <div class="smart-tip-badge"><i class="fas fa-lightbulb"></i> Today's Smart Tip</div>
+                <div class="smart-tip-inner">
+                    <div class="smart-tip-left">
+                        <div class="smart-tip-icon" id="smart-tip-icon">🌿</div>
+                        <div class="smart-tip-meta">
+                            <span class="tip-cat-tag" id="smart-tip-cat">Loading</span>
+                            <span class="tip-diff-tag" id="smart-tip-diff">Easy</span>
+                        </div>
+                    </div>
+                    <div class="smart-tip-right">
+                        <h3 class="smart-tip-title" id="smart-tip-title">Loading today's tip...</h3>
+                        <p class="smart-tip-desc" id="smart-tip-desc">Fetching your personalized eco insight...</p>
+                        <div class="smart-tip-impact" id="smart-tip-impact">
+                            <span class="impact-pill"><i class="fas fa-cloud"></i> -- kg CO₂</span>
+                            <span class="impact-pill"><i class="fas fa-tint"></i> -- L water</span>
+                            <span class="impact-pill"><i class="fas fa-bolt"></i> -- kWh</span>
+                        </div>
+                        <button class="eco-btn read-tip-btn" id="smart-read-btn">
+                            <i class="fas fa-eye"></i> Mark as Read (+5 XP)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ECO IMPACT TRACKER -->
+            <div class="eco-card impact-card">
+                <div class="impact-header">
+                    <span>🌍</span>
+                    <h3>Your Eco Impact</h3>
+                    <small>Cumulative savings from completed tips</small>
+                </div>
+                <div class="impact-stats">
+                    <div class="impact-stat">
+                        <div class="impact-icon co2-icon"><i class="fas fa-cloud"></i></div>
+                        <div class="impact-val" id="impact-co2">0.0</div>
+                        <div class="impact-unit">kg CO₂ saved</div>
+                    </div>
+                    <div class="impact-stat">
+                        <div class="impact-icon water-icon"><i class="fas fa-tint"></i></div>
+                        <div class="impact-val" id="impact-water">0</div>
+                        <div class="impact-unit">litres saved</div>
+                    </div>
+                    <div class="impact-stat">
+                        <div class="impact-icon energy-icon"><i class="fas fa-bolt"></i></div>
+                        <div class="impact-val" id="impact-energy">0.0</div>
+                        <div class="impact-unit">kWh saved</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CATEGORY FILTER -->
+            <div class="eco-filter-row">
+                <button class="eco-filter-btn active" data-cat="all">All</button>
+                <button class="eco-filter-btn" data-cat="energy">⚡ Energy</button>
+                <button class="eco-filter-btn" data-cat="water">💧 Water</button>
+                <button class="eco-filter-btn" data-cat="lifestyle">🛍️ Lifestyle</button>
+                <button class="eco-filter-btn" data-cat="food">🍃 Food</button>
+                <button class="eco-filter-btn" data-cat="transport">🚲 Transport</button>
+            </div>
+
+            <!-- TIP CARDS GRID -->
+            <div class="eco-tips-grid" id="eco-tips-grid"></div>
+
+        </div>
+    </section>
+
+    <section class="tree-section">
+    <div class="section-wrap">
+      <div class="tree-inner">
+        <div class="section-tag">Community Impact</div>
+        <div class="tree-count-display" id="global-tree-count">1</div>
+        <h2>Trees Planted by Our Community</h2>
+        <p>Every sign-up and eco action logged contributes to real-world reforestation efforts around the globe.</p>
+        <div class="community-pills" id="community-pills">
+          <div class="community-pill">
+            <div class="pill-avatar">JL</div> Jay L. — 5 trees
+          </div>
+          <div class="community-pill">
+            <div class="pill-avatar">AM</div> Ana M. — 3 trees
+          </div>
+          <div class="community-pill">
+            <div class="pill-avatar">KR</div> Kim R. — 8 trees
+          </div>
+          <div class="community-pill">
+            <div class="pill-avatar">DS</div> Dave S. — 2 trees
+          </div>
+          <div class="community-pill">
+            <div class="pill-avatar">PL</div> Pia L. — 12 trees
+          </div>
+        </div>
+        <a href="https://onetreeplanted.org" target="_blank" rel="noopener noreferrer" class="btn-primary"
+          style="font-size:1rem;padding:16px 36px;">
+          <i class="fas fa-tree"></i> Join & Plant a Tree
+        </a>
+      </div>
+    </div>
+  </section>
+
+    <!-- ░░░░░░░░░░░░░░░░░░░  FOOTER  ░░░░░░░░░░░░░░░░░░░ -->
+    <footer class="cf-footer" id="site-footer" aria-label="Site footer">
+
+        <!-- Glow top border -->
+        <div class="cf-footer-glow-bar" aria-hidden="true"></div>
+
+        <!-- Particle canvas -->
+        <canvas id="cf-footer-canvas" class="cf-footer-canvas" aria-hidden="true"></canvas>
+
+        <div class="cf-footer-inner">
+
+            <!-- ── ROW 1: Brand + Earth Status + Impact Snapshot ── -->
+            <div class="cf-top-row">
+
+                <!-- Brand -->
+                <div class="cf-brand" data-cf-reveal>
+                    <div class="cf-brand-logo">
+                        <img src="main logo.png" alt="Clifix Logo" onerror="this.style.display='none'">
+                        <span class="cf-brand-name">Cli<span>Fix</span></span>
+                    </div>
+                    <p class="cf-brand-tagline">Eco-Weather Intelligence Platform</p>
+                    <p class="cf-brand-desc">
+                        Real-time climate data, personal eco-tracking, and a global community united by one goal — a
+                        healthier planet.
+                    </p>
+                    <!-- Trust line -->
+                    <div class="cf-trust-line">
+                        <span>🌳 1 user = 1 tree planted</span>
+                    </div>
+                </div>
+
+                <!-- Live Earth Status -->
+                <div class="cf-earth-status" data-cf-reveal>
+                    <div class="cf-widget-label"><i class="fas fa-globe-americas" aria-hidden="true"></i> Live Earth
+                        Status</div>
+                    <div class="cf-earth-grid">
+                        <div class="cf-earth-widget" title="Global average surface temperature anomaly">
+                            <div class="cf-ew-icon">🌡️</div>
+                            <div class="cf-ew-val" id="cf-earth-temp">+1.4°C</div>
+                            <div class="cf-ew-lbl">Temp Anomaly</div>
+                        </div>
+                        <div class="cf-earth-widget" title="Active named tropical storms worldwide">
+                            <div class="cf-ew-icon">🌀</div>
+                            <div class="cf-ew-val" id="cf-earth-storms">3</div>
+                            <div class="cf-ew-lbl">Active Storms</div>
+                        </div>
+                        <div class="cf-earth-widget" title="Global average Air Quality Index">
+                            <div class="cf-ew-icon">💨</div>
+                            <div class="cf-ew-val" id="cf-earth-aqi" data-count="87">--</div>
+                            <div class="cf-ew-lbl">Global AQI</div>
+                        </div>
+                        <div class="cf-earth-widget" title="Atmospheric CO2 concentration">
+                            <div class="cf-ew-icon">🌿</div>
+                            <div class="cf-ew-val" id="cf-earth-co2">424.6<span style="font-size:0.55em"> ppm</span>
+                            </div>
+                            <div class="cf-ew-lbl">Atm. CO₂</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User / Global Impact Snapshot -->
+                <div class="cf-impact-snap" data-cf-reveal>
+                    <div class="cf-widget-label"><i class="fas fa-chart-line" aria-hidden="true"></i>
+                        <span id="cf-snap-label">Your Impact</span>
+                    </div>
+                    <div class="cf-snap-stats" id="cf-snap-stats">
+                        <!-- Populated by footer.js (user stats if logged in, global otherwise) -->
+                        <div class="cf-snap-stat">
+                            <span class="cf-snap-num" data-count="12" id="cf-snap-trees">--</span>
+                            <span class="cf-snap-unit">🌳 Trees</span>
+                        </div>
+                        <div class="cf-snap-stat">
+                            <span class="cf-snap-num" data-count="34" id="cf-snap-co2">--</span>
+                            <span class="cf-snap-unit">kg CO₂</span>
+                        </div>
+                        <div class="cf-snap-stat">
+                            <span class="cf-snap-num" data-count="48" id="cf-snap-actions">--</span>
+                            <span class="cf-snap-unit">⚡ Actions</span>
+                        </div>
+                    </div>
+                    <!-- Quick Actions -->
+                    <div class="cf-quick-actions">
+                        <button class="cf-pill-btn"
+                            onclick="document.getElementById('air-quality')?.scrollIntoView({behavior:'smooth'})"
+                            aria-label="Check AQI">
+                            <i class="fas fa-wind" aria-hidden="true"></i> Check AQI
+                        </button>
+                        <button class="cf-pill-btn"
+                            onclick="document.getElementById('download-btn-phase1')?.click()"
+                            aria-label="Weekly report">
+                            <i class="fas fa-file-alt" aria-hidden="true"></i> Weekly Report
+                        </button>
+                        <button class="cf-pill-btn"
+                            onclick="document.getElementById('gamified-eco')?.scrollIntoView({behavior:'smooth'})"
+                            aria-label="Eco challenge">
+                            <i class="fas fa-bolt" aria-hidden="true"></i> Eco Challenge
+                        </button>
+                    </div>
+                </div>
+
+            </div><!-- /cf-top-row -->
+
+            <!-- ── DIVIDER ── -->
+            <div class="cf-divider" aria-hidden="true"></div>
+
+            <!-- ── ROW 2: Navigation columns ── -->
+            <div class="cf-nav-row" data-cf-reveal>
+
+                <div class="cf-nav-col">
+                    <h4 class="cf-nav-heading">Platform</h4>
+                    <ul class="cf-nav-list">
+                        <li><a href="#weather" class="cf-nav-link"><i class="fas fa-cloud-sun"
+                                    aria-hidden="true"></i> Dashboard</a></li>
+                        <li><a href="#climate-report" class="cf-nav-link"><i class="fas fa-chart-bar"
+                                    aria-hidden="true"></i> Climate Reports</a></li>
+                        <li><a href="#eco-tips" class="cf-nav-link"><i class="fas fa-leaf" aria-hidden="true"></i> Eco
+                                Tips</a></li>
+                        <li><a href="#community-impact" class="cf-nav-link"><i class="fas fa-users"
+                                    aria-hidden="true"></i> Community</a></li>
+                        <li><a href="#calculator" class="cf-nav-link"><i class="fas fa-calculator"
+                                    aria-hidden="true"></i> Carbon Calc</a></li>
+                    </ul>
+                </div>
+
+                <div class="cf-nav-col">
+                    <h4 class="cf-nav-heading">Features</h4>
+                    <ul class="cf-nav-list">
+                        <li><a href="#air-quality" class="cf-nav-link"><i class="fas fa-lungs"
+                                    aria-hidden="true"></i> Air Quality</a></li>
+                        <li><a href="#climate-impact" class="cf-nav-link"><i class="fas fa-seedling"
+                                    aria-hidden="true"></i> Eco Tracker</a></li>
+                        <li><a href="#gamified-eco" class="cf-nav-link"><i class="fas fa-trophy"
+                                    aria-hidden="true"></i> Eco Arena</a></li>
+                        <li><a href="#home" class="cf-nav-link" onclick="toggleAIPanel?.()"><i class="fas fa-robot"
+                                    aria-hidden="true"></i> AI Assistant</a></li>
+                    </ul>
+                </div>
+
+                <div class="cf-nav-col">
+                    <h4 class="cf-nav-heading">About</h4>
+                    <ul class="cf-nav-list">
+                        <li><a href="#" class="cf-nav-link"><i class="fas fa-info-circle" aria-hidden="true"></i> About
+                                Clifix</a></li>
+                        <li><a href="#" class="cf-nav-link"><i class="fas fa-shield-alt" aria-hidden="true"></i> Privacy
+                                Policy</a></li>
+                        <li><a href="#" class="cf-nav-link"><i class="fas fa-file-contract" aria-hidden="true"></i> Terms
+                                of Service</a></li>
+                        <li><a href="#" class="cf-nav-link"><i class="fas fa-envelope" aria-hidden="true"></i> Contact
+                                Us</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="cf-nav-col cf-newsletter-col">
+                    <h4 class="cf-nav-heading">Stay Informed</h4>
+                    <p class="cf-newsletter-desc">Get weekly eco-intelligence in your inbox.</p>
+                    <div class="cf-newsletter-form">
+                        <input type="email" id="footer-newsletter-email" class="cf-newsletter-input"
+                            placeholder="your@email.com" aria-label="Newsletter email address">
+                        <button class="cf-newsletter-btn" id="cf-newsletter-btn" aria-label="Subscribe to newsletter">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <!-- Social Links -->
+                    <div class="cf-socials">
+                        <a href="#" class="cf-social-btn" aria-label="Twitter"><i class="fab fa-twitter"
+                                aria-hidden="true"></i></a>
+                        <a href="#" class="cf-social-btn" aria-label="Instagram"><i class="fab fa-instagram"
+                                aria-hidden="true"></i></a>
+                        <a href="#" class="cf-social-btn" aria-label="LinkedIn"><i class="fab fa-linkedin-in"
+                                aria-hidden="true"></i></a>
+                        <a href="#" class="cf-social-btn" aria-label="GitHub"><i class="fab fa-github"
+                                aria-hidden="true"></i></a>
+                    </div>
+                </div>
+
+            </div><!-- /cf-nav-row -->
+
+            <!-- ── DIVIDER ── -->
+            <div class="cf-divider" aria-hidden="true"></div>
+
+            <!-- ── ROW 3: Bottom bar (tagline + copyright) ── -->
+            <div class="cf-bottom-row">
+                <!-- Animated tagline -->
+                <div class="cf-tagline-wrap">
+                    <p class="cf-tagline" id="cf-tagline" aria-live="polite"></p>
+                </div>
+                <!-- Copyright + links -->
+                <div class="cf-copyright">
+                    <span>© 2026 Clifix. Built for the planet.</span>
+                    <div class="cf-legal-links">
+                        <a href="#" class="cf-legal-link">Privacy</a>
+                        <span aria-hidden="true">·</span>
+                        <a href="#" class="cf-legal-link">Terms</a>
+                        <span aria-hidden="true">·</span>
+                        <a href="#" class="cf-legal-link">Cookies</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scroll progress indicator -->
+            <div class="cf-scroll-progress" id="cf-scroll-progress" aria-hidden="true">
+                <div class="cf-scroll-bar" id="cf-scroll-bar"></div>
+            </div>
+
+        </div><!-- /cf-footer-inner -->
+    </footer>
+
+    <!-- PHASE 8: Smart Notifications Panel -->
+    <button class="sound-toggle-btn" id="sound-toggle-btn" title="Sound OFF"><i
+            class="fas fa-volume-mute"></i></button>
+    <button class="notif-fab" id="notif-fab" title="Weather Alerts"><i class="fas fa-bell"></i></button>
+    <div class="notifications-panel" id="notifications-panel">
+        <div class="notif-panel-header">
+            <h3><i class="fas fa-bell"></i> Smart Alerts</h3>
+            <button class="notif-close-btn" id="notif-panel-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="notif-toggle-row">
+            <span><i class="fas fa-cloud-rain"></i> Rain alerts</span>
+            <label class="toggle-switch"><input type="checkbox" id="notif-toggle-rain" checked><span
+                    class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-toggle-row">
+            <span><i class="fas fa-temperature-high"></i> Heat warnings</span>
+            <label class="toggle-switch"><input type="checkbox" id="notif-toggle-heat" checked><span
+                    class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-toggle-row">
+            <span><i class="fas fa-wind"></i> Wind alerts</span>
+            <label class="toggle-switch"><input type="checkbox" id="notif-toggle-wind" checked><span
+                    class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-toggle-row">
+            <span><i class="fas fa-smog"></i> AQI warnings</span>
+            <label class="toggle-switch"><input type="checkbox" id="notif-toggle-aqi" checked><span
+                    class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-toggle-row">
+            <span><i class="fas fa-sun"></i> UV index alerts</span>
+            <label class="toggle-switch"><input type="checkbox" id="notif-toggle-uv" checked><span
+                    class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-history" id="notif-history">
+            <div style="color:#8FAD8A;font-size:0.78rem;padding:8px 0;">No recent alerts</div>
+        </div>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="auth-modal">
+            <button class="modal-close" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+            <div class="auth-logo">
+                <div class="logo-icon" style="width:48px;height:48px;font-size:22px;">🌱</div>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+            </div>
+            <div class="auth-error" id="auth-error"></div>
+            <div id="form-login" class="auth-form">
+                <div class="auth-input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" class="auth-input" id="login-email" placeholder="Email address"
+                        autocomplete="email">
+                </div>
+                <div class="auth-input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" class="auth-input" id="login-password" placeholder="Password"
+                        autocomplete="current-password">
+                </div>
+                <button class="auth-submit" onclick="handleLogin()">Login to CliFix</button>
+                <div class="auth-divider">— or —</div>
+                <button class="btn-outline" style="width:100%;justify-content:center;padding:12px;"
+                    onclick="switchAuthTab('signup')">Create Account</button>
+            </div>
+            <div id="form-signup" class="auth-form" style="display:none;">
+                <div class="auth-input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" class="auth-input" id="signup-name" placeholder="Full name">
+                </div>
+                <div class="auth-input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" class="auth-input" id="signup-email" placeholder="Email address"
+                        autocomplete="email">
+                </div>
+                <div class="auth-input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" class="auth-input" id="signup-password" placeholder="Password (min 6 chars)"
+                        autocomplete="new-password">
+                </div>
+                <div class="tree-signup-note">
+                    <span>🌳</span> A tree will be planted in your name when you sign up!
+                </div>
+                <button class="auth-submit" onclick="handleSignup()">Create Account & Plant Tree</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI ASSISTANT PANEL -->
+    <button class="ai-fab" id="ai-fab" onclick="toggleAIPanel()" title="CliFix AI Assistant">
+        <div class="ai-fab-logo-container" id="ai-fab-icon">
+            <img src="524478cb-bfb0-4a3b-bb6c-fa309877beea-Picsart-BackgroundRemover.jpg" alt="AI" id="ai-fab-logo">
+        </div>
+        <div class="ai-fab-pulse" id="ai-pulse"></div>
+    </button>
+
+    <div id="ai-panel" class="ai-panel">
+        <div class="ai-panel-header">
+            <div class="ai-avatar">
+                <img src="524478cb-bfb0-4a3b-bb6c-fa309877beea-Picsart-BackgroundRemover.jpg" alt="CliFix AI Logo">
+            </div>
+            <div>
+                <div class="ai-panel-title">CliFix AI</div>
+                <div class="ai-panel-status">Online · Eco Intelligence</div>
+            </div>
+        </div>
+        <div class="ai-insights" id="ai-insights">
+            <div class="ai-insights-label">Live Recommendations</div>
+            <div class="ai-insight-chip"><i class="fas fa-spinner fa-spin"></i> Analyzing your environment...</div>
+        </div>
+        <div class="ai-messages" id="ai-messages">
+            <div class="ai-msg ai">👋 Hi! I'm your CliFix AI assistant. I analyze your local weather and air quality to
+                give
+                you personalized eco-intelligence. Ask me anything!</div>
+        </div>
+        <div class="ai-input-row">
+            <input type="text" class="ai-input" id="ai-input" placeholder="Ask about weather, eco tips..."
+                onkeydown="if(event.key==='Enter') sendAIMessage()">
+            <button class="ai-send" onclick="sendAIMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- External Scripts - ORDER MATTERS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet-velocity@1.6.1/dist/leaflet-velocity.min.js"></script>
+
+    <!-- Modular JS Files -->
+    <script src="js/config.js"></script>
+    <script src="js/weather.js"></script>
+    <script src="js/hero.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ecotracker.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/climate-reporter.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/upgrade.js"></script>
+    <script src="js/gamification.js"></script>
+    <script src="js/eco.js"></script>
+    <script src="js/clifix background.js"></script>
+    <script src="js/footer.js"></script>
+</body>
+</html>

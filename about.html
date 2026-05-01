@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us • ClixFix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ── BASE RESET FOR THIS PAGE ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #070D0A;
+      color: #E8F5E1;
+      line-height: 1.6;
+      overflow-x: hidden;
+      display: block;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    #clifix-preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #070D0A;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    overflow: hidden;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+  }
+  #clifix-preloader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* Ambient radial glow */
+  #clifix-preloader::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,230,118,0.12) 0%, transparent 70%);
+    animation: preloader-breathe 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes preloader-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50%       { transform: scale(1.15); opacity: 1; }
+  }
+
+  /* Orbiting ring */
+  .pre-orbit-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 32px;
+  }
+  .pre-orbit-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #00E676;
+    border-right-color: rgba(0,230,118,0.3);
+    animation: pre-spin 1.4s linear infinite;
+    box-shadow: 0 0 18px rgba(0,230,118,0.25);
+  }
+  .pre-orbit-ring-2 {
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    border-bottom-color: rgba(0,230,118,0.5);
+    border-left-color: rgba(0,230,118,0.2);
+    animation: pre-spin 2s linear infinite reverse;
+  }
+  @keyframes pre-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Logo icon in center */
+  .pre-logo-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pre-icon-pulse 2s ease-in-out infinite;
+  }
+
+  .pre-logo-center img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    display: block;
+    background: transparent;
+  }
+
+  @keyframes pre-icon-pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    filter: drop-shadow(0 0 8px rgba(0,230,118,0.4)); 
+  }
+  50% { 
+    transform: scale(1.1); 
+    filter: drop-shadow(0 0 15px rgba(0,230,118,0.7)); 
+  }
+}
+
+  /* Brand name */
+  .pre-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #E8F5E1;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .pre-brand span { color: #00E676; }
+
+  /* Tagline */
+  .pre-tagline {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #4A5D44;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 44px;
+  }
+
+  /* Progress bar */
+  .pre-progress-wrap {
+    width: 240px;
+    height: 3px;
+    background: rgba(0,230,118,0.1);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .pre-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00C853, #00E676);
+    border-radius: 99px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(0,230,118,0.6);
+  }
+
+  /* Status text */
+  .pre-status {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.76rem;
+    color: #8FAD8A;
+    letter-spacing: 0.5px;
+    min-height: 18px;
+    text-align: center;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Corner particles */
+  .pre-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #00E676;
+    opacity: 0;
+    animation: pre-float var(--dur, 4s) var(--delay, 0s) ease-in-out infinite;
+  }
+  @keyframes pre-float {
+    0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+    30%  { opacity: 0.7; }
+    100% { transform: translate(var(--dx, 40px), var(--dy, -80px)) scale(0); opacity: 0; }
+  }
+  
+
+    /* ── AMBIENT BG ── */
+    .page-ambient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .page-ambient::before {
+      content: '';
+      position: absolute;
+      width: 800px; height: 800px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,230,118,0.07) 0%, transparent 70%);
+      top: -300px; left: -200px;
+    }
+    .page-ambient::after {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,200,83,0.05) 0%, transparent 70%);
+      bottom: -100px; right: -100px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: rgba(7,13,10,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,230,118,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+      gap: 24px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #00C853, #004D2C);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 16px rgba(0,200,83,0.4);
+    }
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #E8F5E1;
+      letter-spacing: -0.5px;
+    }
+    .logo-text span { color: #00E676; }
+    .nav-links { display: flex; list-style: none; gap: 4px; align-items: center; }
+    .nav-links a {
+      font-size: 0.87rem; font-weight: 500;
+      color: #8FAD8A; text-decoration: none;
+      padding: 7px 14px; border-radius: 8px;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      border: 1px solid transparent;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #00E676;
+      background: rgba(0,230,118,0.07);
+      border-color: rgba(0,230,118,0.12);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #00C853, #004D2C);
+      color: #000; font-weight: 700; font-size: 0.85rem;
+      padding: 9px 20px; border-radius: 9px;
+      border: none; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      font-family: 'Outfit', sans-serif;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 0 20px rgba(0,200,83,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,200,83,0.5); }
+    .mobile-menu-btn {
+      display: none;
+      background: rgba(0,230,118,0.07);
+      border: 1px solid rgba(0,230,118,0.12);
+      color: #00E676; width: 38px; height: 38px;
+      border-radius: 9px; cursor: pointer;
+      align-items: center; justify-content: center;
+    }
+
+    /* ── PAGE WRAP ── */
+    .about-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 32px 100px;
+    }
+
+    /* ── HERO HEADER ── */
+    .about-hero {
+      text-align: center;
+      margin-bottom: 80px;
+      animation: fadeUp 0.8s ease both;
+    }
+    .section-tag {
+      display: inline-block;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: #00E676; margin-bottom: 14px;
+    }
+    .about-hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -2px; line-height: 1.05;
+      color: #E8F5E1; margin-bottom: 20px;
+    }
+    .about-hero h1 em {
+      font-style: normal; color: #00E676;
+      text-shadow: 0 0 40px rgba(0,230,118,0.4);
+    }
+    .about-hero .subhead {
+      font-size: 1.12rem; color: #8FAD8A;
+      max-width: 540px; margin: 0 auto 36px;
+      font-weight: 400;
+    }
+
+    /* Eyebrow pill */
+    .eyebrow-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(0,230,118,0.07);
+      border: 1px solid rgba(0,230,118,0.3);
+      padding: 6px 18px; border-radius: 999px;
+      font-size: 0.78rem; font-weight: 600;
+      color: #00E676; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 28px;
+    }
+    .eyebrow-pill::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: #00E676; border-radius: 50%;
+      box-shadow: 0 0 8px #00E676;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Stat row */
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .stat-pill {
+      background: rgba(10,22,15,0.85);
+      border: 1px solid rgba(0,230,118,0.12);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .stat-pill:hover {
+      border-color: rgba(0,230,118,0.3);
+      box-shadow: 0 0 30px rgba(0,230,118,0.1);
+      transform: translateY(-3px);
+    }
+    .stat-pill .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.2rem; font-weight: 800;
+      color: #00E676; line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-pill .stat-label {
+      font-size: 0.78rem; color: #8FAD8A;
+      text-transform: uppercase; letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    /* ── SECTION SHARED ── */
+    .about-section { margin-bottom: 72px; }
+    .about-section h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 800;
+      color: #E8F5E1;
+      letter-spacing: -0.8px;
+      margin-bottom: 8px;
+    }
+    .about-section .section-sub {
+      font-size: 0.95rem; color: #8FAD8A;
+      margin-bottom: 32px; max-width: 480px;
+    }
+
+    /* ── MISSION BLOCK ── */
+    .mission-block {
+      background: rgba(10,22,15,0.85);
+      border: 1px solid rgba(0,230,118,0.18);
+      border-left: 5px solid #00E676;
+      border-radius: 0 20px 20px 0;
+      padding: 28px 32px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 0 40px rgba(0,230,118,0.05);
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .mission-block .mission-label {
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: #00E676; margin-bottom: 12px;
+    }
+    .mission-block p {
+      font-size: 1.1rem; font-weight: 500;
+      color: #C8E6C9; line-height: 1.7;
+    }
+    .mission-block p strong { color: #00E676; }
+
+    /* ── INTRO PROSE ── */
+    .intro-prose {
+      font-size: 1.05rem; color: #8FAD8A;
+      line-height: 1.8; margin-bottom: 0;
+      animation: fadeUp 0.8s 0.05s ease both;
+    }
+    .intro-prose strong { color: #E8F5E1; font-weight: 600; }
+
+    /* ── FEATURES GRID ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 14px;
+      animation: fadeUp 0.8s 0.15s ease both;
+    }
+    .feature-card {
+      background: rgba(10,22,15,0.85);
+      border: 1px solid rgba(0,230,118,0.12);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex; align-items: center; gap: 14px;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      backdrop-filter: blur(16px);
+    }
+    .feature-card:hover {
+      border-color: rgba(0,230,118,0.3);
+      box-shadow: 0 0 24px rgba(0,230,118,0.08);
+      transform: translateY(-2px);
+    }
+    .feature-card .f-icon {
+      width: 40px; height: 40px; flex-shrink: 0;
+      background: rgba(0,230,118,0.07);
+      border: 1px solid rgba(0,230,118,0.15);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .feature-card .f-text {
+      font-size: 0.88rem; color: #C8E6C9;
+      font-weight: 500; line-height: 1.4;
+    }
+
+    /* ── WHY CLIXFIX ── */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .why-card {
+      background: rgba(10,22,15,0.85);
+      border: 1px solid rgba(0,230,118,0.12);
+      border-radius: 18px;
+      padding: 28px 24px;
+      backdrop-filter: blur(16px);
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .why-card:hover {
+      border-color: rgba(0,230,118,0.3);
+      box-shadow: 0 0 30px rgba(0,230,118,0.1);
+      transform: translateY(-3px);
+    }
+    .why-card .wc-icon {
+      font-size: 1.6rem; margin-bottom: 14px;
+      display: block;
+    }
+    .why-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: #E8F5E1; margin-bottom: 8px;
+    }
+    .why-card p {
+      font-size: 0.87rem; color: #8FAD8A; line-height: 1.65;
+    }
+
+    /* ── IMPACT BLOCK ── */
+    .impact-banner {
+      background: linear-gradient(135deg, rgba(0,100,40,0.2) 0%, rgba(0,50,20,0.3) 100%);
+      border: 1px solid rgba(0,230,118,0.2);
+      border-radius: 24px;
+      padding: 40px 40px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: center;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 0 60px rgba(0,230,118,0.06);
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .impact-banner .impact-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem; font-weight: 800;
+      color: #E8F5E1; margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .impact-banner .impact-title span { color: #00E676; }
+    .impact-banner p {
+      font-size: 0.95rem; color: #8FAD8A;
+      line-height: 1.7; max-width: 520px;
+    }
+    .impact-counter {
+      text-align: center; flex-shrink: 0;
+    }
+    .impact-counter .counter-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 3.5rem; font-weight: 800;
+      color: #00E676; line-height: 1;
+      text-shadow: 0 0 30px rgba(0,230,118,0.4);
+    }
+    .impact-counter .counter-label {
+      font-size: 0.75rem; color: #4A5D44;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      font-weight: 700; margin-top: 6px;
+    }
+    .impact-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(0,230,118,0.1);
+      border: 1px solid rgba(0,230,118,0.25);
+      border-radius: 999px;
+      padding: 10px 22px;
+      font-size: 0.95rem; font-weight: 700;
+      color: #00E676;
+      margin-top: 20px;
+      animation: pulse-glow 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(0,230,118,0.2); }
+      50%      { box-shadow: 0 0 0 8px rgba(0,230,118,0); }
+    }
+
+    /* ── JOIN / CTA ── */
+    .cta-section {
+      text-align: center;
+      background: rgba(10,22,15,0.85);
+      border: 1px solid rgba(0,230,118,0.12);
+      border-radius: 24px;
+      padding: 56px 40px;
+      backdrop-filter: blur(16px);
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .cta-section h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem,3.5vw,2.4rem);
+      font-weight: 800; color: #E8F5E1;
+      letter-spacing: -1px; margin-bottom: 12px;
+    }
+    .cta-section h2 em { font-style: normal; color: #00E676; }
+    .cta-section p {
+      font-size: 1rem; color: #8FAD8A;
+      max-width: 460px; margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+    .cta-row {
+      display: flex; align-items: center;
+      justify-content: center; gap: 14px; flex-wrap: wrap;
+    }
+    .btn-cta-main {
+      background: linear-gradient(135deg, #00C853, #004D2C);
+      color: #000; font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 1rem;
+      padding: 14px 32px; border-radius: 60px;
+      text-decoration: none; border: none; cursor: pointer;
+      box-shadow: 0 0 28px rgba(0,200,83,0.35);
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      display: inline-flex; align-items: center; gap: 10px;
+      letter-spacing: 0.3px;
+    }
+    .btn-cta-main:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 40px rgba(0,200,83,0.5);
+    }
+    .btn-cta-ghost {
+      background: transparent;
+      color: #00E676; font-family: 'Outfit', sans-serif;
+      font-weight: 600; font-size: 0.95rem;
+      padding: 13px 28px; border-radius: 60px;
+      border: 1px solid rgba(0,230,118,0.3);
+      text-decoration: none; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-cta-ghost:hover { background: rgba(0,230,118,0.07); }
+
+    /* ── SUBTLE DIVIDER ── */
+    .section-divider {
+      border: none;
+      border-top: 1px solid rgba(0,230,118,0.08);
+      margin: 0 0 72px;
+    }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid rgba(0,230,118,0.08);
+      padding: 28px 32px;
+      text-align: center;
+      font-size: 0.82rem; color: #4A5D44;
+    }
+    .page-footer a { color: #00E676; text-decoration: none; }
+    .page-footer a:hover { opacity: 0.75; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(24px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .header-inner { padding: 0 20px; }
+      .nav-links { display: none; }
+      .mobile-menu-btn { display: flex; }
+      .about-wrap { padding: 48px 20px 80px; }
+      .stat-strip { grid-template-columns: 1fr 1fr; }
+      .impact-banner { grid-template-columns: 1fr; gap: 24px; text-align: center; }
+      .impact-counter .counter-val { font-size: 2.8rem; }
+      .cta-section { padding: 40px 24px; }
+    }
+    @media (max-width: 480px) {
+      .stat-strip { grid-template-columns: 1fr; }
+      .feature-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ PRELOADER ══ -->
+   <div id="clifix-preloader">
+  <div class="pre-particle" style="bottom:20%;left:15%;--dx:30px;--dy:100px;--dur:4x2s;--delay:0s;"></div>
+  <div class="pre-particle" style="bottom:30%;left:25%;--dx:-20px;--dy:-80px;--dur:3.8s;--delay:0.6s;width:6px;height:6px;"></div>
+  <div class="pre-particle" style="bottom:25%;right:20%;--dx:-30px;--dy:-110px;--dur:4.5s;--delay:1s;"></div>
+  <div class="pre-particle" style="bottom:40%;right:15%;--dx:20px;--dy:-70px;--dur:3.5s;--delay:0.3s;width:3px;height:3px;"></div>
+  <div class="pre-particle" style="bottom:15%;left:40%;--dx:10px;--dy:-90px;--dur:4s;--delay:0.8s;width:5px;height:5px;"></div>
+  <div class="pre-particle" style="bottom:35%;right:35%;--dx:-15px;--dy:-60px;--dur:3.6s;--delay:1.4s;"></div>
+
+  <!-- Orbiting Logo -->
+   <div class="pre-orbit-wrapper">
+    <div class="pre-orbit-ring"></div>
+    <div class="pre-orbit-ring-2"></div>
+    <div class="pre-logo-center">
+      <img src="main logo.png" alt="pre-logo-image">
+    </div>
+   </div>
+
+  <!-- Brand -->
+    <div class="pre-brand">Cli<span>Fix</span></div>
+    <div class="pre-tagline">Eco-Weather Intelligence</div>
+
+  <!-- Progress -->
+   <div class="pre-progress-wrap">
+    <div class="pre-progress-bar" id="pre-bar"></div>
+   </div>
+   <div class="pre-status" id="pre-status">Initializing platform...</div>
+</div>
+
+  <!-- ══ AMBIENT ══ -->
+  <div class="page-ambient"></div>
+
+  <!-- ══ MAIN ══ -->
+  <main class="about-wrap">
+
+    <!-- ── HERO HEADER ── -->
+    <div class="about-hero">
+      <div class="eyebrow-pill">Climate intelligence · Sustainability · Action</div>
+      <h1>About <em>ClixFix</em></h1>
+      <p class="subhead">Precision weather intelligence meets purposeful climate action.</p>
+
+      <!-- Stats -->
+      <div class="stat-strip">
+        <div class="stat-pill">
+          <div class="stat-val">180+</div>
+          <div class="stat-label">Countries covered</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-val">48K</div>
+          <div class="stat-label">Trees planted</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-val">2M+</div>
+          <div class="stat-label">Active users</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WHO WE ARE ── -->
+    <div class="about-section">
+      <div class="section-tag">🌿 Who we are</div>
+      <h2>Built for a planet in motion</h2>
+      <p class="section-sub">Where meteorological precision meets environmental purpose.</p>
+
+      <p class="intro-prose" style="margin-bottom:28px;">
+        <strong>ClixFix</strong> is an advanced environmental intelligence platform — delivering hyperlocal weather, global climate alerts, and sustainability tools that empower individuals and organizations to navigate a changing planet with clarity and confidence.
+      </p>
+
+      <div class="mission-block">
+        <div class="mission-label">🌍 Our mission</div>
+        <p>To democratize climate insight — making reliable, <strong>science-backed weather</strong> and sustainability data accessible to everyone, while fostering <strong>tangible environmental impact</strong>.</p>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- ── CORE CAPABILITIES ── -->
+    <div class="about-section">
+      <div class="section-tag">⚡ Platform</div>
+      <h2>Core capabilities</h2>
+      <p class="section-sub">Everything you need to understand, predict, and respond to your climate reality.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="f-icon">⏳</div>
+          <div class="f-text">Real‑time weather &amp; climate analytics</div>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">⚠️</div>
+          <div class="f-text">Severe weather &amp; early warning system</div>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">🌱</div>
+          <div class="f-text">Eco‑challenges &amp; carbon awareness</div>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">🌬️</div>
+          <div class="f-text">Hyperlocal air quality index (AQI)</div>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">🛰️</div>
+          <div class="f-text">Satellite &amp; radar mapping</div>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">📈</div>
+          <div class="f-text">Weekly climate impact reports</div>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">📍</div>
+          <div class="f-text">Geofenced personalized alerts</div>
+        </div>
+        <div class="feature-card">
+          <div class="f-icon">🌐</div>
+          <div class="f-text">Global climate pattern insights</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- ── WHY CLIXFIX ── -->
+    <div class="about-section">
+      <div class="section-tag">✦ Why ClixFix</div>
+      <h2>Why organizations choose us</h2>
+      <p class="section-sub">In an era of climate volatility, reliable information is the foundation of resilience.</p>
+
+      <div class="why-grid">
+        <div class="why-card">
+          <span class="wc-icon">🎯</span>
+          <h3>Meteorological precision</h3>
+          <p>We fuse hyper-local sensor networks with satellite data to deliver forecasts accurate to the city block, not just the county.</p>
+        </div>
+        <div class="why-card">
+          <span class="wc-icon">🔒</span>
+          <h3>Built for resilience</h3>
+          <p>Whether safeguarding critical operations or planning your commute, ClixFix is designed for clarity under pressure.</p>
+        </div>
+        <div class="why-card">
+          <span class="wc-icon">🌱</span>
+          <h3>Sustainability at the core</h3>
+          <p>Every feature is informed by a deep commitment to environmental sustainability — not just as a feature, but as a philosophy.</p>
+        </div>
+        <div class="why-card">
+          <span class="wc-icon">📡</span>
+          <h3>Always-on intelligence</h3>
+          <p>24/7 climate monitoring with sub-minute refresh rates and real-time push alerts for severe weather and AQI spikes.</p>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- ── IMPACT ── -->
+    <div class="about-section">
+      <div class="section-tag">🌳 Impact</div>
+      <h2>Measurable impact, built in</h2>
+      <p class="section-sub">Every interaction contributes to a healthier planet.</p>
+
+      <div class="impact-banner">
+        <div>
+          <div class="impact-title">One sign-up.<br><span>One tree. Real restoration.</span></div>
+          <p>Through partnerships with global reforestation initiatives, each new ClixFix account funds the planting of one native tree — supporting biodiversity, carbon capture, and local livelihoods across 40+ countries.</p>
+          <div class="impact-badge">🌱 1 sign‑up = 1 tree planted</div>
+        </div>
+        <div class="impact-counter">
+          <div class="counter-val">48,291</div>
+          <div class="counter-label">Trees planted</div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- ── CTA ── -->
+    <div class="cta-section">
+      <div class="section-tag">🚀 Join the movement</div>
+      <h2>Climate awareness starts <em>here</em></h2>
+      <p>ClixFix is more than a weather service — it's a community of informed citizens, forward-thinking businesses, and environmental stewards turning daily weather checks into meaningful climate action.</p>
+      <div class="cta-row">
+        <a href="contact.html" class="btn-cta-main">
+          <i class="fa-solid fa-paper-plane"></i> Connect with our team
+        </a>
+        <a href="index.html" class="btn-cta-ghost">
+          Explore the platform <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── FOOTER ── -->
+  <footer class="page-footer">
+    © ClixFix — Climate clarity for a resilient future &nbsp;·&nbsp;
+    <a href="contact.html">Contact</a> &nbsp;·&nbsp;
+    <a href="#">Privacy</a> &nbsp;·&nbsp;
+    <a href="#">Terms</a>
+  </footer>
+
+  <!-- ══ SCRIPTS ══ -->
+  <script>
+    /* ── PRELOADER ── */
+(function () {
+  var bar = document.getElementById('pre-bar');
+  var status = document.getElementById('pre-status');
+  var loader = document.getElementById('clifix-preloader');
+
+  var steps = [
+    { pct: 20, msg: 'Loading eco-intelligence modules...'},
+    { pct: 42, msg: 'Connecting to weather API...'},
+    { pct: 60, msg: 'Fetching air quality data...'},
+    { pct: 78,  msg: 'Preparing climate dashboard...' },
+    { pct: 92,  msg: 'Almost ready...' },
+    { pct: 100, msg: 'Welcome to CliFix 🌿' }
+  ];
+
+  var i = 0;
+  function tick() {
+    if (i >= steps.length) return;
+    var s = steps [i++];
+    bar.style.width = s.pct + '%';
+    status.textContent = s.msg;
+    if (i < steps.length) setTimeout(tick, 400 + Math.random() * 300);
+  }
+  tick();
+
+  function hideLoader() {
+    bar.style.width = '100%';
+      status.textContent = 'Welcome to CliFix 🌿';
+      setTimeout(function () { loader.classList.add('hidden'); }, 500);
+    }
+
+    if (document.readyState === 'complete') {
+      hideLoader();
+    } else {
+      window.addEventListener('load', hideLoader);
+      // Fallback in case load takes too long
+      setTimeout(hideLoader, 5000);
+    }
+  })();
+  </script>
+
+</body>
+</html>

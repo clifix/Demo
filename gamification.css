@@ -1,0 +1,849 @@
+/* ═══════════════════════════════════════════════════════════════
+   GAMIFICATION.CSS — Eco Arena System for CliFix
+   Uses existing :root variables ONLY — no hardcoded colors
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Section Shell ──────────────────────────────────────────── */
+.gam-section {
+  padding: 80px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.gam-section::before {
+  content: '';
+  position: absolute;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 900px; height: 900px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,230,118,0.05) 0%, transparent 65%);
+  pointer-events: none;
+  animation: gam-breathe 6s ease-in-out infinite;
+}
+
+@keyframes gam-breathe {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.7; }
+  50%       { transform: translateX(-50%) scale(1.08); opacity: 1; }
+}
+
+/* ── Notification Strip ─────────────────────────────────────── */
+.gam-notif-strip {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+  min-height: 0;
+  transition: all 0.4s ease;
+}
+
+.gam-notif-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--jade-soft);
+  border: 1px solid var(--border-bright);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--jade);
+  cursor: pointer;
+  animation: gam-notif-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition: var(--transition);
+}
+
+.gam-notif-pill:hover { background: var(--jade-glow); transform: translateY(-2px); }
+.gam-notif-pill .gam-notif-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--jade);
+  box-shadow: 0 0 6px var(--jade);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes gam-notif-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── TOP GRID ───────────────────────────────────────────────── */
+.gam-top-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .gam-top-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .gam-top-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Level Card ─────────────────────────────────────────────── */
+.gam-level-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 28px !important;
+  position: relative;
+  overflow: hidden;
+  grid-column: span 1;
+}
+
+.gam-level-card::after {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--jade-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* XP Ring SVG */
+.gam-level-ring-wrap {
+  position: relative;
+  width: 110px; height: 110px;
+  flex-shrink: 0;
+}
+
+.gam-xp-ring {
+  width: 110px; height: 110px;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 0 8px rgba(0,230,118,0.35));
+}
+
+.gam-ring-bg   { stroke: rgba(0,230,118,0.1); }
+.gam-ring-fill {
+  stroke: var(--jade);
+  stroke-dasharray: 327;
+  stroke-dashoffset: 327;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gam-level-center {
+  position: absolute;
+  inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
+}
+
+.gam-level-num {
+  font-family: var(--font-display);
+  font-size: 2rem; font-weight: 800;
+  color: var(--jade);
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0,230,118,0.5);
+}
+
+.gam-level-lbl {
+  font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+/* Level Info */
+.gam-level-info { flex: 1; min-width: 0; }
+
+.gam-level-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem; font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.gam-xp-bar-wrap { margin-bottom: 8px; }
+
+.gam-xp-bar-track {
+  height: 6px;
+  background: rgba(0,230,118,0.1);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.gam-xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--jade-dim), var(--jade));
+  border-radius: 99px;
+  width: 0%;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 8px rgba(0,230,118,0.5);
+}
+
+.gam-xp-nums {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.gam-total-xp {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.gam-total-xp strong { color: var(--jade); }
+
+.gam-earn-btn {
+  background: var(--jade-soft);
+  border: 1px solid var(--border);
+  color: var(--jade);
+  font-size: 0.72rem; font-weight: 600;
+  padding: 6px 12px; border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-body);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+
+.gam-earn-btn:hover:not(:disabled) {
+  background: var(--jade-glow);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,230,118,0.2);
+}
+
+.gam-earn-btn:disabled {
+  opacity: 0.35; cursor: not-allowed;
+}
+
+/* ── Streak Calendar Card ───────────────────────────────────── */
+.gam-streak-card {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; padding: 28px !important;
+  text-align: center;
+}
+
+.gam-flame-num {
+  font-family: var(--font-display);
+  font-size: 2.2rem; font-weight: 800;
+  color: var(--amber);
+  text-shadow: 0 0 20px rgba(255,179,0,0.4);
+  animation: flame-pulse 2s ease-in-out infinite;
+}
+
+@keyframes flame-pulse {
+  0%, 100% { text-shadow: 0 0 20px rgba(255,179,0,0.4); }
+  50%       { text-shadow: 0 0 35px rgba(255,179,0,0.8); }
+}
+
+.gam-streak-label {
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-top: -10px;
+}
+
+.gam-cal-week {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+
+.gam-cal-dot {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+
+.gam-cal-dot-circle {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(0,230,118,0.08);
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  transition: var(--transition);
+}
+
+.gam-cal-dot.active .gam-cal-dot-circle {
+  background: var(--jade-dim);
+  border-color: var(--jade);
+  color: #000;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(0,230,118,0.4);
+}
+
+.gam-cal-dot.today .gam-cal-dot-circle {
+  border-color: var(--jade);
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(0,230,118,0.15);
+}
+
+.gam-cal-dot-day {
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gam-streak-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  max-width: 180px;
+  line-height: 1.4;
+}
+
+/* ── Today Card ─────────────────────────────────────────────── */
+.gam-today-card {
+  display: flex; flex-direction: column;
+  gap: 16px; padding: 28px !important;
+}
+
+.gam-card-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem; font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+
+.gam-today-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.gam-today-item {
+  text-align: center;
+  background: var(--jade-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  transition: var(--transition);
+}
+
+.gam-today-item:hover { border-color: var(--border-bright); }
+
+.gam-today-val {
+  font-family: var(--font-display);
+  font-size: 1.4rem; font-weight: 800;
+  color: var(--jade);
+}
+
+.gam-today-label {
+  font-size: 0.65rem; font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-top: 2px;
+}
+
+.gam-next-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.gam-next-label span { color: var(--jade); font-weight: 700; }
+
+/* ── MID GRID (Challenges) ──────────────────────────────────── */
+.gam-mid-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .gam-mid-grid { grid-template-columns: 1fr; }
+}
+
+.gam-daily-card, .gam-weekly-card {
+  padding: 24px !important;
+}
+
+.gam-section-title {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display);
+  font-size: 0.95rem; font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.gam-section-title i { color: var(--jade); }
+
+.gam-reset-timer {
+  margin-left: auto;
+  font-size: 0.67rem; font-weight: 500;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  background: var(--jade-soft);
+  border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 6px;
+}
+
+/* Challenge Cards */
+.gam-challenge-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  background: rgba(0,230,118,0.02);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.gam-challenge-item::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--jade-dim);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gam-challenge-item:hover { border-color: var(--border-bright); }
+.gam-challenge-item:hover::before { opacity: 1; }
+
+.gam-challenge-item.completed {
+  opacity: 0.55;
+  background: rgba(0,230,118,0.05);
+  border-color: rgba(0,230,118,0.15);
+}
+
+.gam-challenge-item.completed::before { opacity: 1; background: var(--jade); }
+
+.gam-ch-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--jade-soft);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.gam-challenge-item:hover .gam-ch-icon {
+  background: var(--jade-glow);
+  border-color: var(--border-bright);
+}
+
+.gam-ch-body { flex: 1; min-width: 0; }
+
+.gam-ch-title {
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.gam-ch-desc {
+  font-size: 0.7rem; color: var(--text-muted);
+  margin-bottom: 7px;
+}
+
+.gam-ch-progress-wrap {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.gam-ch-progress-track {
+  flex: 1; height: 4px;
+  background: rgba(0,230,118,0.1);
+  border-radius: 99px; overflow: hidden;
+}
+
+.gam-ch-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--jade-dim), var(--jade));
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+
+.gam-ch-progress-text {
+  font-size: 0.65rem; color: var(--text-muted); white-space: nowrap;
+}
+
+.gam-ch-right { text-align: right; flex-shrink: 0; }
+
+.gam-ch-xp {
+  font-size: 0.7rem; font-weight: 700;
+  color: var(--jade);
+  background: var(--jade-soft);
+  padding: 2px 8px; border-radius: 6px;
+  margin-bottom: 6px; display: inline-block;
+}
+
+.gam-ch-btn {
+  background: var(--jade-dim);
+  color: #000; font-weight: 700; font-size: 0.65rem;
+  padding: 5px 10px; border-radius: 6px; border: none;
+  cursor: pointer; transition: var(--transition);
+  font-family: var(--font-body);
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 4px;
+}
+
+.gam-ch-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,200,83,0.3); }
+.gam-ch-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.gam-ch-complete-badge {
+  font-size: 0.65rem; color: var(--jade);
+  display: flex; align-items: center; gap: 3px;
+}
+
+/* Smart challenge tag */
+.gam-smart-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--amber);
+  background: rgba(255,179,0,0.08);
+  border: 1px solid rgba(255,179,0,0.2);
+  padding: 1px 6px; border-radius: 4px; margin-left: 4px;
+}
+
+/* ── BOTTOM GRID ────────────────────────────────────────────── */
+.gam-bot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .gam-bot-grid { grid-template-columns: 1fr; }
+}
+
+.gam-leaderboard-card, .gam-badges-card {
+  padding: 24px !important;
+}
+
+/* Leaderboard Tabs */
+.gam-lb-tabs {
+  display: flex; gap: 8px;
+  margin-bottom: 18px;
+}
+
+.gam-lb-tab {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.75rem; font-weight: 600;
+  padding: 6px 14px; border-radius: 8px;
+  cursor: pointer; transition: var(--transition);
+  font-family: var(--font-body);
+}
+
+.gam-lb-tab.active {
+  background: var(--jade-soft);
+  border-color: var(--border-bright);
+  color: var(--jade);
+}
+
+/* Podium */
+.gam-lb-podium {
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 8px; margin-bottom: 20px; height: 120px;
+}
+
+.gam-podium-slot {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; flex: 1;
+}
+
+.gam-podium-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700; color: #000;
+  margin-bottom: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.gam-podium-slot:nth-child(1) .gam-podium-avatar { background: linear-gradient(135deg, #C0C0C0, #808080); }
+.gam-podium-slot:nth-child(2) .gam-podium-avatar { background: linear-gradient(135deg, #FFD700, #FFA000); }
+.gam-podium-slot:nth-child(3) .gam-podium-avatar { background: linear-gradient(135deg, #CD7F32, #8D4E20); }
+
+.gam-podium-name {
+  font-size: 0.65rem; font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 70px;
+  text-align: center;
+}
+
+.gam-podium-xp {
+  font-size: 0.6rem; color: var(--text-muted);
+}
+
+.gam-podium-block {
+  width: 100%; border-radius: 6px 6px 0 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 800;
+  color: rgba(0,0,0,0.5);
+}
+
+.gam-podium-slot:nth-child(1) .gam-podium-block { height: 60px; background: linear-gradient(180deg, rgba(192,192,192,0.2), rgba(192,192,192,0.08)); border: 1px solid rgba(192,192,192,0.25); }
+.gam-podium-slot:nth-child(2) .gam-podium-block { height: 80px; background: linear-gradient(180deg, rgba(255,215,0,0.2), rgba(255,215,0,0.08)); border: 1px solid rgba(255,215,0,0.25); }
+.gam-podium-slot:nth-child(3) .gam-podium-block { height: 50px; background: linear-gradient(180deg, rgba(205,127,50,0.2), rgba(205,127,50,0.08)); border: 1px solid rgba(205,127,50,0.25); }
+
+/* Leaderboard List */
+.gam-lb-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px; border-radius: var(--radius-sm);
+  transition: var(--transition);
+  cursor: default;
+}
+
+.gam-lb-row:hover { background: var(--jade-soft); }
+
+.gam-lb-row.is-me {
+  background: var(--jade-soft);
+  border: 1px solid var(--border-bright);
+}
+
+.gam-lb-rank {
+  font-family: var(--font-display);
+  font-size: 0.75rem; font-weight: 700;
+  color: var(--text-muted);
+  width: 24px; text-align: center; flex-shrink: 0;
+}
+
+.gam-lb-avatar-sm {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--jade-soft);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; color: var(--jade);
+  flex-shrink: 0;
+}
+
+.gam-lb-username {
+  flex: 1;
+  font-size: 0.8rem; font-weight: 500; color: var(--text-primary);
+}
+
+.gam-lb-xp-val {
+  font-size: 0.75rem; font-weight: 700; color: var(--jade);
+  font-family: var(--font-display);
+}
+
+.gam-lb-level-badge {
+  font-size: 0.6rem; font-weight: 700; color: var(--text-muted);
+  background: var(--glass);
+  padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);
+}
+
+.gam-my-rank {
+  margin-top: 12px; padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--jade-soft);
+  border: 1px solid var(--border-bright);
+  text-align: center;
+  font-size: 0.78rem; color: var(--jade);
+  font-weight: 600;
+  min-height: 0;
+  transition: all 0.3s ease;
+}
+
+/* ── Badge Gallery ──────────────────────────────────────────── */
+.gam-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .gam-badges-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.gam-badge-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; padding: 14px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(0,230,118,0.02);
+  text-align: center; cursor: default;
+  transition: var(--transition);
+  position: relative; overflow: hidden;
+}
+
+.gam-badge-item.gam-locked {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.gam-badge-item.gam-unlocked {
+  border-color: rgba(0,230,118,0.25);
+  background: var(--jade-soft);
+  box-shadow: 0 0 16px rgba(0,230,118,0.08);
+}
+
+.gam-badge-item.gam-unlocked:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,230,118,0.18);
+  border-color: var(--border-bright);
+}
+
+.gam-badge-item.gam-just-unlocked {
+  animation: gam-badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes gam-badge-pop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.gam-badge-icon {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+
+.gam-badge-name {
+  font-size: 0.65rem; font-weight: 700;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+.gam-badge-desc {
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.gam-lock-icon {
+  position: absolute; top: 6px; right: 6px;
+  font-size: 0.55rem; color: var(--text-muted);
+}
+
+/* ── LEVEL UP OVERLAY ───────────────────────────────────────── */
+.gam-levelup-overlay {
+  position: fixed; inset: 0; z-index: 99998;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.gam-levelup-overlay.active {
+  opacity: 1; pointer-events: all;
+}
+
+.gam-levelup-burst {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 300px; height: 300px;
+}
+
+.gam-levelup-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 3px solid var(--jade);
+  animation: gam-burst-ring 1s ease-out both;
+  box-shadow: 0 0 60px rgba(0,230,118,0.6), inset 0 0 60px rgba(0,230,118,0.15);
+}
+
+@keyframes gam-burst-ring {
+  0%   { transform: scale(0.3); opacity: 0; }
+  50%  { opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.gam-levelup-text {
+  text-align: center; z-index: 2;
+  animation: fadeUp 0.5s 0.3s ease both;
+}
+
+.gam-levelup-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem; font-weight: 800;
+  color: var(--jade);
+  text-shadow: 0 0 40px rgba(0,230,118,0.8);
+  letter-spacing: 3px;
+}
+
+.gam-levelup-sub {
+  font-size: 1.1rem; color: var(--text-primary);
+  margin-top: 6px;
+}
+
+.gam-levelup-close {
+  display: block; margin: 20px auto 0;
+  background: var(--jade-dim); color: #000;
+  border: none; border-radius: 10px; padding: 10px 24px;
+  font-weight: 700; font-size: 0.9rem; cursor: pointer;
+  font-family: var(--font-body); transition: var(--transition);
+}
+
+.gam-levelup-close:hover { transform: scale(1.04); }
+
+/* ── FLOATING +XP TEXT ──────────────────────────────────────── */
+.gam-xp-float {
+  position: fixed;
+  font-family: var(--font-display);
+  font-size: 1.1rem; font-weight: 800;
+  color: var(--jade);
+  text-shadow: 0 0 12px rgba(0,230,118,0.6);
+  pointer-events: none; z-index: 99999;
+  animation: gam-float-up 1.4s ease-out both;
+  white-space: nowrap;
+}
+
+@keyframes gam-float-up {
+  0%   { opacity: 0; transform: translateY(0) scale(0.8); }
+  20%  { opacity: 1; transform: translateY(-10px) scale(1.1); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-60px) scale(0.9); }
+}
+
+/* ── In-App Toast Notifications ─────────────────────────────── */
+.gam-toast-container {
+  position: fixed; top: 80px; right: 24px;
+  z-index: 99997; display: flex; flex-direction: column;
+  gap: 10px; pointer-events: none;
+}
+
+.gam-toast {
+  background: rgba(7,13,10,0.95);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-card);
+  pointer-events: all;
+  min-width: 260px; max-width: 340px;
+  animation: gam-toast-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.gam-toast.hiding { opacity: 0; transform: translateX(20px); }
+
+@keyframes gam-toast-in {
+  from { opacity: 0; transform: translateX(40px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.gam-toast-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--jade-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
+
+.gam-toast-body { flex: 1; min-width: 0; }
+.gam-toast-title { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); }
+.gam-toast-msg   { font-size: 0.7rem; color: var(--text-secondary); }
+
+/* ── Responsive tweaks ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  .gam-level-card { flex-direction: column; text-align: center; }
+  .gam-level-ring-wrap { margin: 0 auto; }
+  .gam-lb-podium { height: 100px; }
+}
+
+/* ── Animations shared ──────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.gam-section .glass-card {
+  animation: fadeUp 0.6s ease both;
+}
