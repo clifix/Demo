@@ -169,12 +169,14 @@
 
     if (iconContainer) {
         if (isOpen) {
+          // Optional: change icon when open
         } else {
+          // Optional: change icon when closed
         }
     }
     
     if (isOpen && typeof refreshAIInsights === 'function') refreshAIInsights();
-};
+  };
 
   window.refreshAIInsights = function() {
     const container = document.getElementById('ai-insights');
@@ -192,12 +194,25 @@
   };
 
   window.callAIForText = async function(promptText) {
-  const systemPrompt = buildSystemPrompt();
-  try {
-    // Try Groq first, then Gemini
-    return await callGroq([{ role: 'system', content: systemPrompt }, { role: 'user', content: promptText }]);
-  } catch {
-    return await callGemini(systemPrompt + '\n\n' + promptText);
-  }
+    const systemPrompt = buildSystemPrompt();
+    try {
+      // Try Groq first, then Gemini
+      return await callGroq([{ role: 'system', content: systemPrompt }, { role: 'user', content: promptText }]);
+    } catch {
+      return await callGemini(systemPrompt + '\n\n' + promptText);
+    }
   };
+
+  // ═══════════════════════════════════════════════════════════
+  // FIX: Ensure AI FAB click works even if inline onclick fails
+  // ═══════════════════════════════════════════════════════════
+  document.addEventListener('DOMContentLoaded', function() {
+    const fab = document.getElementById('ai-fab');
+    if (fab) {
+      fab.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.toggleAIPanel();
+      });
+    }
+  });
 })();
