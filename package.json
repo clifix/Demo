@@ -1,6 +1,7 @@
 {
   "name": "clifix-backend",
   "version": "1.0.0",
+<<<<<<< HEAD
   "description": "",
   "main": "server.js",
   "scripts": {
@@ -25,5 +26,17 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
+=======
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "mongoose": "^7.0.0",
+    "@google/genai": "^1.50.1"
+>>>>>>> 78286684d3fea4c422013eaab6948e7d53254a48
   }
 }

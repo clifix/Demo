@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Us</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" href="images.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-deep: #070D0A;
+      --bg-card: rgba(10, 22, 15, 0.85);
+      --jade: #00E676;
+      --jade-dim: #00C853;
+      --jade-glow: rgba(0,230,118,0.18);
+      --jade-soft: rgba(0,230,118,0.07);
+      --text-primary: #E8F5E1;
+      --text-secondary: #8FAD8A;
+      --text-muted: #4A5D44;
+      --border: rgba(0,230,118,0.12);
+      --border-bright: rgba(0,230,118,0.3);
+      --shadow-jade: 0 0 30px rgba(0,230,118,0.15);
+      --shadow-card: 0 8px 32px rgba(0,0,0,0.5);
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+      --radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-deep);
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,230,118,0.10) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 80% 90%, rgba(0,200,83,0.07) 0%, transparent 60%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Subtle animated grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,230,118,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,230,118,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Back button */
+    .arrow-icon {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-bright);
+      border-radius: 12px;
+      width: 44px;
+      height: 44px;
+      box-shadow: var(--shadow-jade);
+      transition: var(--transition);
+    }
+
+    .arrow-icon:hover {
+      background: var(--jade-soft);
+      border-color: var(--jade);
+      box-shadow: 0 0 20px rgba(0,230,118,0.25);
+    }
+
+    .arrow-icon a {
+      color: var(--jade);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    /* Main card */
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 460px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: 24px;
+      padding: 40px 36px;
+      box-shadow: var(--shadow-card), var(--shadow-jade);
+      backdrop-filter: blur(24px);
+    }
+
+    /* Top glow line */
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--jade), transparent);
+      border-radius: 100%;
+    }
+
+    /* Header */
+    .contact-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .contact-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--jade-soft);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--jade);
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .contact-badge i {
+      font-size: 0.65rem;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    h1 span {
+      color: var(--jade);
+    }
+
+    .subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* Form groups */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      pointer-events: none;
+      transition: var(--transition);
+    }
+
+    .input-wrap.textarea-wrap i {
+      top: 14px;
+      transform: none;
+    }
+
+    .form input,
+    .form textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      padding: 12px 14px 12px 40px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form textarea {
+      resize: vertical;
+      min-height: 110px;
+    }
+
+    .form input::placeholder,
+    .form textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .form input:focus,
+    .form textarea:focus {
+      border-color: var(--jade-dim);
+      background: rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 0 3px rgba(0,230,118,0.08);
+    }
+
+    .form input:focus ~ i,
+    .form textarea:focus ~ i {
+      color: var(--jade);
+    }
+
+    /* Submit button */
+    .form button[type="submit"] {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--jade-dim), #00452A);
+      border: 1px solid var(--border-bright);
+      border-radius: 50px;
+      color: #000;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      transition: var(--transition);
+      margin-top: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .form button[type="submit"]::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      border-radius: inherit;
+    }
+
+    .form button[type="submit"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 28px rgba(0,200,83,0.45);
+      background: linear-gradient(135deg, var(--jade), var(--jade-dim));
+    }
+
+    .form button[type="submit"]:disabled {
+      background: rgba(0,230,118,0.12);
+      border-color: var(--border);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Success message */
+    .form-success {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(0,230,118,0.08);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 14px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--jade);
+    }
+
+    .form-success.visible {
+      display: flex;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Social icons */
+    .social-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .social-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    .social-btn:hover {
+      background: var(--jade-soft);
+      color: var(--jade);
+      border-color: var(--border-bright);
+      transform: translateY(-3px);
+      box-shadow: 0 0 14px rgba(0,230,118,0.2);
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 32px 24px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+    }
+
+    /* ── PRELOADER ── */
+    #clifix-preloader {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #070D0A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      overflow: hidden;
+      transition: opacity 0.7s ease, visibility 0.7s ease;
+    }
+
+    #clifix-preloader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #clifix-preloader::before {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,230,118,0.12) 0%, transparent 70%);
+      animation: preloader-breathe 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes preloader-breathe {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50%       { transform: scale(1.15); opacity: 1; }
+    }
+
+    .pre-orbit-wrapper {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin-bottom: 32px;
+    }
+
+    .pre-orbit-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: #00E676;
+      border-right-color: rgba(0,230,118,0.3);
+      animation: pre-spin 1.4s linear infinite;
+      box-shadow: 0 0 18px rgba(0,230,118,0.25);
+    }
+
+    .pre-orbit-ring-2 {
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      border: 1.5px solid transparent;
+      border-bottom-color: rgba(0,230,118,0.5);
+      border-left-color: rgba(0,230,118,0.2);
+      animation: pre-spin 2s linear infinite reverse;
+    }
+
+    @keyframes pre-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .pre-logo-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pre-icon-pulse 2s ease-in-out infinite;
+    }
+
+    .pre-logo-center img {
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+      display: block;
+      background: transparent;
+    }
+
+    @keyframes pre-icon-pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    filter: drop-shadow(0 0 8px rgba(0,230,118,0.4)); 
+  }
+  50% { 
+    transform: scale(1.1); 
+    filter: drop-shadow(0 0 15px rgba(0,230,118,0.7)); 
+  }
+}
+
+    .pre-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #E8F5E1;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .pre-brand span { color: #00E676; }
+
+    .pre-tagline {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #4A5D44;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      margin-bottom: 44px;
+    }
+
+    .pre-progress-wrap {
+      width: 240px;
+      height: 3px;
+      background: rgba(0,230,118,0.1);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .pre-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00C853, #00E676);
+      border-radius: 99px;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 10px rgba(0,230,118,0.6);
+    }
+
+    .pre-status {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.76rem;
+      color: #8FAD8A;
+      letter-spacing: 0.5px;
+      min-height: 18px;
+      text-align: center;
+      transition: opacity 0.3s ease;
+    }
+
+    .pre-particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #00E676;
+      opacity: 0;
+      animation: pre-float var(--dur, 4s) var(--delay, 0s) ease-in-out infinite;
+    }
+
+    @keyframes pre-float {
+      0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+      30%  { opacity: 0.7; }
+      100% { transform: translate(var(--dx, 40px), var(--dy, -80px)) scale(0); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PRELOADER -->
+  <div id="clifix-preloader">
+    <!-- Floating particles -->
+    <div class="pre-particle" style="--dx:60px;  --dy:-90px;  --dur:4.2s; --delay:0s;    left:45%; top:55%;"></div>
+    <div class="pre-particle" style="--dx:-50px; --dy:-70px;  --dur:3.8s; --delay:0.6s;  left:55%; top:60%;"></div>
+    <div class="pre-particle" style="--dx:30px;  --dy:-110px; --dur:5s;   --delay:1.2s;  left:50%; top:58%;"></div>
+    <div class="pre-particle" style="--dx:-70px; --dy:-60px;  --dur:4.5s; --delay:0.3s;  left:48%; top:52%;"></div>
+    <div class="pre-particle" style="--dx:80px;  --dy:-50px;  --dur:3.5s; --delay:0.9s;  left:52%; top:56%;"></div>
+
+    <div class="pre-orbit-wrapper">
+      <div class="pre-orbit-ring"></div>
+      <div class="pre-orbit-ring-2"></div>
+      <div class="pre-logo-center">
+        <img src="main logo.png" alt="pre-loader-logo">
+      </div>
+    </div>
+
+    <div class="pre-brand">Cli<span>Fix</span></div>
+    <div class="pre-tagline">Loading contact</div>
+
+    <div class="pre-progress-wrap">
+      <div class="pre-progress-bar" id="pre-bar"></div>
+    </div>
+    <div class="pre-status" id="pre-status">Initializing...</div>
+  </div>
+
+  <div class="arrow-icon">
+    <a href="clifix.html"><i class="fa-solid fa-arrow-left"></i></a>
+  </div>
+
+  <div class="container">
+
+    <div class="contact-header">
+      <div class="contact-badge">
+        <i class="fa-solid fa-circle"></i> Get in touch
+      </div>
+      <h1>Contact <span>Us</span></h1>
+      <p class="subtitle">We'd love to hear from you</p>
+    </div>
+
+    <div class="form">
+      <form id="contact-form">
+
+        <div class="form-group">
+          <label for="name" class="form-label">Your Name</label>
+          <div class="input-wrap">
+            <input type="text" id="name" placeholder="John Doe" required>
+            <i class="fa-solid fa-user"></i>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <div class="input-wrap">
+            <input type="email" id="email" placeholder="john@example.com" required>
+            <i class="fa-solid fa-envelope"></i>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="message" class="form-label">Message</label>
+          <div class="input-wrap textarea-wrap">
+            <textarea id="message" rows="4" placeholder="How can I help?" required></textarea>
+            <i class="fa-solid fa-message"></i>
+          </div>
+        </div>
+
+        <button type="submit">
+          <span>Send Message</span>
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+
+        <div class="form-success" id="form-success">
+          <i class="fa-solid fa-circle-check"></i>
+          Message sent successfully!
+        </div>
+
+      </form>
+    </div>
+
+    <div class="divider"><span>Connect</span></div>
+
+    <div class="social-row">
+      <a href="https://www.linkedin.com/in/liam-orfano-542444403/" target="_blank" class="social-btn"><i class="fa-brands fa-linkedin-in"></i></a>
+      <a href="https://github.com/Batch2022-2026" target="_blank" class="social-btn"><i class="fa-brands fa-github"></i></a>
+      <a href="https://www.facebook.com/liam.orfano.2025" target="_blank" class="social-btn"><i class="fa-brands fa-facebook"></i></a>
+      <a href="https://x.com/LiamOrfano" target="_blank" class="social-btn"><i class="fa-brands fa-twitter"></i></a>
+    </div>
+
+  </div>
+
+<script>
+/* ── PRELOADER ── */
+(function () {
+  const preloader = document.getElementById('clifix-preloader');
+  const bar    = document.getElementById('pre-bar');
+  const status = document.getElementById('pre-status');
+
+  const steps = [
+    { pct: 20,  msg: 'Initializing...' },
+    { pct: 45,  msg: 'Loading assets...' },
+    { pct: 70,  msg: 'Setting up form...' },
+    { pct: 90,  msg: 'Almost ready...' },
+    { pct: 100, msg: 'Welcome!' },
+  ];
+
+  let i = 0;
+  const tick = setInterval(() => {
+    if (i >= steps.length) {
+      clearInterval(tick);
+      setTimeout(() => preloader.classList.add('hidden'), 400);
+      return;
+    }
+    bar.style.width    = steps[i].pct + '%';
+    status.textContent = steps[i].msg;
+    i++;
+  }, 350);
+
+  // Safety fallback — always hide after 3s
+  window.addEventListener('load', () => {
+    setTimeout(() => preloader.classList.add('hidden'), 200);
+  });
+  setTimeout(() => preloader.classList.add('hidden'), 3000);
+})();
+
+/* ── CONTACT FORM ── */
+const form = document.getElementById('contact-form');
+const formSuccess = document.getElementById('form-success');
+
+const botToken = "8713802557:AAHPoJRwi4rLWJ_I5i8XjoCLjrhQgFoZjb8";
+const chatId = "8209417976";
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const btn = form.querySelector('button[type="submit"]');
+  const originalHTML = btn.innerHTML;
+
+  btn.innerHTML = '<span>Sending...</span><i class="fa-solid fa-spinner fa-spin"></i>';
+  btn.disabled = true;
+
+  const name    = document.getElementById('name').value;
+  const email   = document.getElementById('email').value;
+  const message = document.getElementById('message').value;
+
+  const text = `🚀 *New Work Request!*%0A%0A` +
+               `*Name:* ${encodeURIComponent(name)}%0A` +
+               `*Email:* ${encodeURIComponent(email)}%0A%0A` +
+               `*Message:* ${encodeURIComponent(message)}`;
+
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&parse_mode=Markdown`;
+
+  try {
+    const response = await fetch(url);
+
+    if (response.ok) {
+      form.reset();
+      formSuccess.classList.add('visible');
+
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+      }, 1000);
+
+      setTimeout(() => formSuccess.classList.remove('visible'), 5000);
+    } else {
+      const errorData = await response.json();
+      console.error("Telegram API Error:", errorData);
+      throw new Error('Telegram API Error');
+    }
+  } catch (error) {
+    console.error("Error sending to Telegram:", error);
+    alert("Oops! There was an issue sending your message. Please try again.");
+    btn.innerHTML = originalHTML;
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
