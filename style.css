@@ -4316,7 +4316,7 @@ body.wx-storm::before {
   box-shadow:
     0 8px 48px rgba(0, 0, 0, 0.6),
     0 0 30px rgba(0, 230, 118, 0.1);
-  transform: scale(0) translateY(20px);
+  transform: scale(0) translateY(20px); 
   transform-origin: bottom right;
   transition:
     transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -4328,8 +4328,7 @@ body.wx-storm::before {
 }
 
 .ai-panel.open {
-  display: flex;
-  transform: translateY(0);
+  transform: scale(1) translateY(0);       
   opacity: 1;
   pointer-events: all;
 }
@@ -5724,4 +5723,211 @@ body.wx-storm::before {
     right: 12px;
     max-width: calc(100vw - 24px);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CLIFIX COMPLETE STYLE.CSS — Fully responsive mobile + desktop
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* …… (below paste the ENTIRE style.css file I provided earlier, but with the following modifications) …… */
+
+/* ═══ Add these rules at the VERY END of the existing style.css file ═══ */
+
+/* ══════════════════════════════════════════════════════════════════════
+   GLOBAL MOBILE FIXES – prevent horizontal scroll & jitter
+   ══════════════════════════════════════════════════════════════════════ */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Constrain all fixed panels to screen width */
+.notifications-panel,
+#ai-panel,
+#hero-notif-teaser,
+.ai-fab,
+.notif-fab,
+.sound-toggle-btn {
+  max-width: calc(100vw - 24px);
+  right: 12px;
+}
+
+/* ── AUTH MODAL ── */
+@media (max-width: 480px) {
+  .auth-modal {
+    max-width: 90vw;
+    padding: 32px 20px;
+  }
+  .auth-tabs {
+    flex-wrap: nowrap;
+  }
+  .auth-input {
+    font-size: 0.85rem;
+    padding: 10px 14px 10px 38px;
+  }
+}
+
+/* ── AI PANEL ── */
+@media (max-width: 768px) {
+  .ai-panel {
+    width: calc(100vw - 24px);
+    right: 12px;
+    bottom: 80px;
+    height: calc(100vh - 120px);
+    border-radius: 16px;
+  }
+}
+@media (max-width: 480px) {
+  .ai-panel {
+    height: calc(100vh - 140px);
+  }
+}
+
+/* ── NOTIFICATIONS PANEL ── */
+@media (max-width: 480px) {
+  .notifications-panel {
+    width: calc(100vw - 24px);
+    right: 12px;
+    bottom: 80px;
+  }
+  .notif-fab, .sound-toggle-btn {
+    right: 12px;
+  }
+}
+
+/* ── HERO SECTION ── */
+@media (max-width: 640px) {
+  .hero-inner {
+    grid-template-columns: 1fr;
+    padding: 80px 20px 60px;
+    gap: 32px;
+  }
+  .hero-headline {
+    font-size: 2rem;
+  }
+  .hero-ctas {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+  .hero-social-proof {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* ── LEADERBOARD PODIUM (make visible on mobile) ── */
+.gam-lb-podium {
+  flex-wrap: wrap;
+  justify-content: center;
+  height: auto !important;
+  gap: 8px;
+}
+.gam-podium-slot {
+  min-width: 80px;
+}
+@media (max-width: 480px) {
+  .gam-lb-podium {
+    flex-direction: column;
+    align-items: center;
+  }
+  .gam-podium-slot {
+    width: 100%;
+    max-width: 200px;
+  }
+  .gam-podium-block {
+    height: 30px !important;
+  }
+}
+
+/* ── MAP CONTROLS & BUTTONS ── */
+@media (max-width: 600px) {
+  .map-controls {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .map-btn {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+  }
+  .map-search-form {
+    flex-wrap: wrap;
+  }
+  .map-search-form input {
+    font-size: 0.8rem;
+  }
+}
+
+/* ── GENERAL GRID RESPONSIVENESS ── */
+@media (max-width: 768px) {
+  .weather-grid,
+  .aqi-layout,
+  .report-cards-grid,
+  .tracker-two-col,
+  .impact-stats,
+  .tips-layout,
+  .calc-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .stat-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+  .mini-charts-strip {
+    grid-template-columns: 1fr;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-strip {
+    grid-template-columns: 1fr;
+  }
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── CLIMATE IMPACT CARDS ── */
+@media (max-width: 640px) {
+  .climate-impact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── ECO TIPS GRID ── */
+@media (max-width: 480px) {
+  .eco-tips-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── TIMELINE ── */
+@media (max-width: 480px) {
+  .timeline {
+    padding-left: 20px;
+  }
+  .tl-dot {
+    left: -20px;
+  }
+}
+
+/* ── GENERIC FIXED ELEMENTS ── */
+#hero-notif-teaser {
+  right: 12px;
+  max-width: calc(100vw - 24px);
 }
