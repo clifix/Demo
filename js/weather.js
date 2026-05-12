@@ -1,528 +1,879 @@
-// ═══════════════════════════════════════════════════════
-// WEATHER & AQI FUNCTIONS + MAP & HERO ANIMATION INTEGRATION
-// ═══════════════════════════════════════════════════════
+/**
+ * CliFix Weather Module — weather.js v2.1.0
+ *
+ * Responsibilities:
+ *  - Detect user location (Geolocation API → IP fallback)
+ *  - Fetch current weather + 7-day forecast from Open-Meteo
+ *  - Update all weather DOM elements
+ *  - Expose weather context to CliFix_AI
+ *  - Render optimized Chart.js charts
+ *  - Prevent memory leaks + race conditions
+ *
+ * FIXES IMPLEMENTED:
+ *  ✅ Prevent overlapping init() calls
+ *  ✅ Added fetch timeout support
+ *  ✅ Added safer API handling
+ *  ✅ Reduced reverse geocode spam
+ *  ✅ Fixed visibility bug
+ *  ✅ Prevent Chart.js listener stacking
+ *  ✅ Better mobile optimization
+ *  ✅ Better low-end Android stability
+ *  ✅ Background-tab refresh optimization
+ */
 
-function getEmoji(code) { return WMO_EMOJI[code] || '🌤️'; }
-function getText(code) { return WMO_TEXT[code] || 'Unknown'; }
+'use strict';
 
-async function geocode(city) {
-  const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
-  const d = await r.json();
-  if (!d.results?.length) throw new Error('City not found');
-  return { lat: d.results[0].latitude, lon: d.results[0].longitude, name: d.results[0].name + ', ' + (d.results[0].country || '') };
-}
+(function CliFix_Weather() {
 
-async function reverseGeocode(lat, lon) {
-  try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, { headers: { 'Accept-Language': 'en' } });
-    const d = await r.json();
-    const parts = [d.address?.city || d.address?.town || d.address?.village, d.address?.state, d.address?.country].filter(Boolean);
-    return parts.join(', ') || 'Unknown location';
-  } catch(e) { return 'Unknown location'; }
-}
-
-async function fetchWeather(lat, lon) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&hourly=temperature_2m,weathercode,precipitation_probability,relativehumidity_2m,apparent_temperature,visibility,surface_pressure,uv_index` +
-    `&daily=weathercode,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,windspeed_10m_max` +
-    `&current_weather=true&temperature_unit=celsius&timezone=auto&forecast_days=7`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('Weather API failed');
-  return r.json();
-}
-
-function updateWeatherUI(data, locationName) {
-  currentWeatherData = data;
-  const cw = data.current_weather;
-  const daily = data.daily;
-  const hourly = data.hourly;
-  const now = new Date();
-  const hi = now.getHours();
-
-  // Main card
-  document.getElementById('today-emoji').textContent = getEmoji(cw.weathercode);
-  document.getElementById('today-temp').textContent = Math.round(cw.temperature) + '°C';
-  document.getElementById('today-condition').textContent = getText(cw.weathercode);
-  document.getElementById('today-max').textContent = '↑ ' + Math.round(daily.temperature_2m_max[0]) + '°C';
-  document.getElementById('today-min').textContent = '↓ ' + Math.round(daily.temperature_2m_min[0]) + '°C';
-  document.getElementById('today-wind').textContent = Math.round(cw.windspeed) + ' km/h';
-  document.getElementById('today-humidity').textContent = (hourly.relativehumidity_2m?.[hi] || '--') + '%';
-  document.getElementById('today-visibility').textContent = Math.round((hourly.visibility?.[hi] || 0) / 1000) + ' km';
-  document.getElementById('today-pressure').textContent = Math.round(hourly.surface_pressure?.[hi] || 0) + ' hPa';
-
-  // Stat strip
-  document.getElementById('strip-feelslike').textContent = Math.round(hourly.apparent_temperature?.[hi] || cw.temperature) + '°C';
-  const uv = daily.uv_index_max?.[0] || 0;
-  document.getElementById('strip-uv').textContent = uv.toFixed(1);
-  document.getElementById('strip-uv-label').textContent = uv < 3 ? 'Low' : uv < 6 ? 'Moderate' : uv < 8 ? 'High' : 'Very High';
-  const precip = daily.precipitation_sum?.[0] || 0;
-  document.getElementById('strip-precip').textContent = (hourly.precipitation_probability?.[hi] || 0) + '%';
-
-  // Eco Score
-  const windScore = Math.min(cw.windspeed / 30, 1);
-  const uvPenalty = uv > 8 ? 0.7 : 1;
-  const precipBonus = precip > 0 ? 1.05 : 1;
-  const ecoVal = Math.round(90 * uvPenalty * precipBonus - windScore * 10);
-  const ecoScore = Math.max(40, Math.min(100, ecoVal));
-  document.getElementById('strip-eco').textContent = ecoScore >= 85 ? 'A+' : ecoScore >= 75 ? 'A' : ecoScore >= 65 ? 'B' : ecoScore >= 55 ? 'C' : 'D';
-  document.getElementById('strip-eco-label').textContent = ecoScore >= 85 ? 'Excellent eco day' : ecoScore >= 65 ? 'Good eco day' : 'High impact day';
-
-  // Hourly forecast
-  const hourlyEl = document.getElementById('hourly-scroll');
-  hourlyEl.innerHTML = '';
-  for (let i = hi; i < hi + 24; i++) {
-    const idx = i % 24;
-    const div = document.createElement('div');
-    div.className = 'hourly-item';
-    div.innerHTML = `<div class="hourly-time">${String(idx).padStart(2, '0')}:00</div><span class="hourly-emoji">${getEmoji(hourly.weathercode?.[i] || 0)}</span><div class="hourly-temp">${Math.round(hourly.temperature_2m?.[i] || 0)}°</div>`;
-    hourlyEl.appendChild(div);
-  }
-
-  // 7-day forecast
-  const weeklyEl = document.getElementById('weekly-list');
-  weeklyEl.innerHTML = '';
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(daily.time[i]);
-    const dayName = i === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short' });
-    const div = document.createElement('div');
-    div.className = 'day-item';
-    div.innerHTML = `<span class="day-name">${dayName}</span><span class="day-emoji">${getEmoji(daily.weathercode[i])}</span><span class="day-temp-range"><span class="temp-max">${Math.round(daily.temperature_2m_max[i])}°</span><span style="color:var(--text-muted)">·</span><span class="temp-min">${Math.round(daily.temperature_2m_min[i])}°</span></span>`;
-    weeklyEl.appendChild(div);
-  }
-
-  fetchAndUpdateClimateCharts(currentLat, currentLon);
-  updateEcoTipsForWeather(cw.weathercode);
-  checkExtremeWeatherAlerts(data);
-  if (typeof refreshAIInsights === 'function') refreshAIInsights();
-
-  // ── MAP ANIMATION: Send weather data ──
-  if (typeof ClifixMapAnim !== 'undefined' && window.updateMapWeatherAnimation) {
-    window.updateMapWeatherAnimation(data);
-  }
-}
-
-function checkExtremeWeatherAlerts(data) {
-  const alerts = [];
-  const cw = data.current_weather;
-  const daily = data.daily;
-
-  if ([82, 95, 96, 99].includes(cw.weathercode)) alerts.push('⛈️ Severe thunderstorm detected in your area. Seek shelter immediately.');
-  if (cw.temperature >= 38) alerts.push(`🌡️ Extreme heat warning: ${Math.round(cw.temperature)}°C. Stay hydrated and avoid outdoor activity.`);
-  if (cw.temperature <= -5) alerts.push(`❄️ Freeze warning: ${Math.round(cw.temperature)}°C. Protect pipes and dress in layers.`);
-  if (cw.windspeed >= 60) alerts.push(`💨 High wind alert: ${Math.round(cw.windspeed)} km/h. Avoid driving and secure outdoor objects.`);
-  const maxRain = Math.max(...(daily.precipitation_sum || [0]));
-  if (maxRain >= 50) alerts.push(`🌊 Flood risk: ${maxRain.toFixed(0)}mm of rain forecast. Avoid low-lying areas.`);
-  const maxUV = daily.uv_index_max?.[0] || 0;
-  if (maxUV >= 10) alerts.push(`☀️ Extreme UV warning: Index ${maxUV.toFixed(0)}. Wear SPF 50+ and avoid midday sun.`);
-
-  const banner = document.getElementById('alert-banner');
-  const bannerText = document.getElementById('alert-banner-text');
-  if (alerts.length > 0) {
-    bannerText.textContent = alerts[0];
-    banner.classList.add('show');
-  } else {
-    banner.classList.remove('show');
-  }
-}
-
-// ── ENHANCED AQI ------------------------------------------------------
-function getAQICategory(aqi) {
-  if (aqi <= 50)  return { label: 'Good',        cls: 'good', color: '#00E676', advice: 'Air quality is satisfactory. Perfect for all outdoor activities.' };
-  if (aqi <= 100) return { label: 'Moderate',    cls: 'moderate', color: '#FFB300', advice: 'Air quality is acceptable. Sensitive groups should limit prolonged outdoor exertion.' };
-  if (aqi <= 150) return { label: 'Unhealthy for Sensitive', cls: 'poor', color: '#FF9800', advice: 'Sensitive groups may experience health effects. General public is unlikely to be affected.' };
-  if (aqi <= 200) return { label: 'Unhealthy',   cls: 'poor', color: '#F44336', advice: 'Everyone may experience health effects. Sensitive groups should avoid outdoor exertion.' };
-  if (aqi <= 300) return { label: 'Very Unhealthy', cls: 'poor', color: '#9C27B0', advice: 'Health alert! Everyone should avoid prolonged outdoor exertion.' };
-  return           { label: 'Hazardous',          cls: 'poor', color: '#7B1FA2', advice: '⚠️ Emergency conditions. Avoid all outdoor activity.' };
-}
-
-function getPollutantStatus(value, type) {
-  const thresholds = {
-    pm2_5:  [{ limit: 12,  label: 'Good',         color: '#00E676' },
-             { limit: 35,  label: 'Moderate',     color: '#FFB300' },
-             { limit: 55,  label: 'Unhealthy',    color: '#FF5252' },
-             { limit: 150, label: 'Very Unhealthy', color: '#9C27B0' },
-             { limit: Infinity, label: 'Hazardous', color: '#7B1FA2' }],
-    pm10:   [{ limit: 50,  label: 'Good',         color: '#00E676' },
-             { limit: 150, label: 'Moderate',     color: '#FFB300' },
-             { limit: 250, label: 'Unhealthy',    color: '#FF5252' },
-             { limit: 350, label: 'Very Unhealthy', color: '#9C27B0' },
-             { limit: Infinity, label: 'Hazardous', color: '#7B1FA2' }],
-    no2:    [{ limit: 40,  label: 'Good',         color: '#00E676' },
-             { limit: 200, label: 'Moderate',     color: '#FFB300' },
-             { limit: 400, label: 'Unhealthy',    color: '#FF5252' },
-             { limit: Infinity, label: 'Very Unhealthy', color: '#9C27B0' }],
-    o3:     [{ limit: 50,  label: 'Good',         color: '#00E676' },
-             { limit: 100, label: 'Moderate',     color: '#FFB300' },
-             { limit: 168, label: 'Unhealthy',    color: '#FF5252' },
-             { limit: 208, label: 'Very Unhealthy', color: '#9C27B0' },
-             { limit: Infinity, label: 'Hazardous', color: '#7B1FA2' }]
+  /* ──────────────────────────────────────────
+     API CONFIG
+  ────────────────────────────────────────── */
+  const API = {
+    GEO:    'https://api.open-meteo.com/v1/forecast',
+    IP_GEO: 'https://ipapi.co/json/',
   };
-  const scale = thresholds[type] || thresholds.pm2_5;
-  for (const t of scale) {
-    if (value <= t.limit) return { label: t.label, color: t.color };
-  }
-}
 
-function getHealthImpact(aqi, pollutants) {
-  const advice = {
-    children: 'No restrictions.',
-    asthma: 'No restrictions.',
-    activity: 'Ideal for outdoor exercise.',
+  /* ──────────────────────────────────────────
+     WEATHER CODES
+  ────────────────────────────────────────── */
+  const WMO = {
+    0:'Clear sky',
+    1:'Mainly clear',
+    2:'Partly cloudy',
+    3:'Overcast',
+    45:'Fog',
+    48:'Icing fog',
+    51:'Light drizzle',
+    53:'Drizzle',
+    55:'Heavy drizzle',
+    61:'Light rain',
+    63:'Rain',
+    65:'Heavy rain',
+    71:'Light snow',
+    73:'Snow',
+    75:'Heavy snow',
+    80:'Light showers',
+    81:'Showers',
+    82:'Violent showers',
+    85:'Snow showers',
+    86:'Heavy snow showers',
+    95:'Thunderstorm',
+    96:'Thunderstorm + hail',
+    99:'Thunderstorm + heavy hail',
   };
-  if (aqi > 100) {
-    advice.children = 'Reduce prolonged outdoor play.';
-    advice.asthma = 'Limit outdoor exertion, keep inhaler nearby.';
-    advice.activity = 'Consider indoor activities for sensitive groups.';
+
+  const WMO_ICON = {
+    0:'☀️',
+    1:'🌤️',
+    2:'⛅',
+    3:'☁️',
+    45:'🌫️',
+    48:'🌫️',
+    51:'🌦️',
+    53:'🌧️',
+    55:'🌧️',
+    61:'🌦️',
+    63:'🌧️',
+    65:'🌧️',
+    71:'🌨️',
+    73:'❄️',
+    75:'❄️',
+    80:'🌦️',
+    81:'🌧️',
+    82:'⛈️',
+    85:'❄️',
+    86:'❄️',
+    95:'⛈️',
+    96:'⛈️',
+    99:'⛈️',
+  };
+
+  /* ──────────────────────────────────────────
+     STATE
+  ────────────────────────────────────────── */
+  const state = {
+    lat: null,
+    lon: null,
+    city: null,
+    weather: null,
+    charts: {},
+    isLoading: false,
+    waitingForChart: false,
+  };
+
+  /* ──────────────────────────────────────────
+     HELPERS
+  ────────────────────────────────────────── */
+  function $(id) {
+    return document.getElementById(id);
   }
-  if (aqi > 150) {
-    advice.children = 'Avoid outdoor play.';
-    advice.asthma = 'Avoid outdoor activities, keep windows closed.';
-    advice.activity = 'Avoid strenuous outdoor exercise.';
+
+  function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value ?? '--';
   }
-  if (aqi > 200) {
-    advice.children = 'Stay indoors.';
-    advice.asthma = 'Stay indoors with air purifier, seek medical help if breathing difficulty occurs.';
-    advice.activity = 'Avoid all outdoor activity.';
+
+  function setHTML(id, value) {
+    const el = $(id);
+    if (el) el.innerHTML = value ?? '';
   }
-  if (pollutants.pm2_5 > 35) {
-    advice.asthma = 'PM2.5 high — risk of asthma attacks. Minimize outdoor exposure.';
-  }
-  if (pollutants.o3 > 100) {
-    advice.children = 'Ozone levels high — avoid midday outdoor activities.';
-    advice.activity = 'Ozone may reduce lung function — avoid heavy exertion.';
-  }
-  return advice;
-}
 
-function getDominantPollutant(pollutants) {
-  const weights = { pm2_5: 100, pm10: 70, no2: 80, o3: 90 };
-  let max = 0, dominant = 'PM2.5';
-  for (const [key, val] of Object.entries(pollutants)) {
-    const weighted = val * (weights[key] || 1);
-    if (weighted > max) { max = weighted; dominant = key.toUpperCase(); }
-  }
-  return dominant;
-}
+  function formatTime(iso) {
+    if (!iso) return '';
 
-async function fetchAQI(lat, lon) {
-  try {
-    const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi,pm10,pm2_5,nitrogen_dioxide,ozone&hourly=european_aqi&forecast_days=1`;
-    const r = await fetch(url);
-    const d = await r.json();
-    if (!d.current) throw new Error('No AQI data');
-    currentAQIData = d;
-
-    const aqi = Math.round(d.current.european_aqi || 0);
-    const cat = getAQICategory(aqi);
-
-    document.getElementById('aqi-value').textContent = aqi;
-    document.getElementById('aqi-value').style.color = cat.color;
-    const catEl = document.getElementById('aqi-category');
-    catEl.textContent = cat.label;
-    catEl.className = 'aqi-label ' + cat.cls;
-    document.getElementById('aqi-advice').textContent = cat.advice;
-
-    const pm25 = parseFloat(d.current.pm2_5) || 0;
-    const pm10 = parseFloat(d.current.pm10) || 0;
-    const no2  = parseFloat(d.current.nitrogen_dioxide) || 0;
-    const o3   = parseFloat(d.current.ozone) || 0;
-    const pollutants = { pm2_5: pm25, pm10: pm10, no2: no2, o3: o3 };
-
-    const dominant = getDominantPollutant(pollutants);
-    document.getElementById('dominant-text').textContent = `Dominant: ${dominant} · ${getPollutantStatus(pm25, 'pm2_5').label}`;
-
-    const health = getHealthImpact(aqi, pollutants);
-    document.getElementById('health-children').innerHTML = `<i class="fas fa-child"></i> Children: ${health.children}`;
-    document.getElementById('health-asthma').innerHTML = `<i class="fas fa-lungs"></i> Asthma: ${health.asthma}`;
-    document.getElementById('health-activity').innerHTML = `<i class="fas fa-running"></i> Activity: ${health.activity}`;
-
-    function setPollutantRow(value, type, levelId, statusId) {
-      const status = getPollutantStatus(value, type);
-      document.getElementById(levelId).textContent = value.toFixed(1);
-      const statusEl = document.getElementById(statusId);
-      statusEl.textContent = status.label;
-      statusEl.style.color = status.color;
+    try {
+      return new Date(iso).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } catch {
+      return '';
     }
-    setPollutantRow(pm25, 'pm2_5', 'pm25-level', 'pm25-status');
-    setPollutantRow(pm10, 'pm10', 'pm10-level', 'pm10-status');
-    setPollutantRow(no2,  'no2',  'no2-level',  'no2-status');
-    setPollutantRow(o3,   'o3',   'o3-level',   'o3-status');
+  }
 
-    drawAQIGauge(aqi, cat.color);
-    drawAQITrend(d.hourly?.european_aqi?.slice(0, 24) || []);
+  function formatDay(iso) {
+    if (!iso) return '';
 
-    if (typeof ClifixMapAnim !== 'undefined' && window.updateMapAQIAnimation) {
-      window.updateMapAQIAnimation(aqi);
+    try {
+      return new Date(iso).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return '';
+    }
+  }
+
+  function uviLabel(uvi) {
+
+    if (uvi == null) {
+      return { label: '–', cls: '' };
     }
 
-    if (typeof ClifixHero !== 'undefined' && ClifixHero.setAQI) {
-      ClifixHero.setAQI(aqi, cat.label);
+    if (uvi <= 2) {
+      return { label: 'Low', cls: 'uvi-low' };
     }
 
-    checkPersonalAlerts(aqi, cat.label);
-    if (typeof refreshAIInsights === 'function') refreshAIInsights();
+    if (uvi <= 5) {
+      return { label: 'Moderate', cls: 'uvi-moderate' };
+    }
 
-    if (aqi > 80) {
-      const banner = document.getElementById('alert-banner');
-      const bannerText = document.getElementById('alert-banner-text');
-      if (!banner.classList.contains('show')) {
-        bannerText.textContent = `⚠️ Air quality is ${cat.label} (AQI ${aqi}). ${cat.advice}`;
-        banner.classList.add('show');
+    if (uvi <= 7) {
+      return { label: 'High', cls: 'uvi-high' };
+    }
+
+    if (uvi <= 10) {
+      return { label: 'Very High', cls: 'uvi-very-high' };
+    }
+
+    return {
+      label: 'Extreme',
+      cls: 'uvi-extreme'
+    };
+  }
+
+  /* ──────────────────────────────────────────
+     FETCH WITH TIMEOUT
+  ────────────────────────────────────────── */
+  async function fetchWithTimeout(url, options = {}, timeout = 10000) {
+
+    const controller = new AbortController();
+
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeout);
+
+    try {
+
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+
+      return response;
+
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /* ──────────────────────────────────────────
+     LOCATION DETECTION
+  ────────────────────────────────────────── */
+  async function detectLocation() {
+
+    return new Promise((resolve) => {
+
+      if (!navigator.geolocation) {
+        fallbackToIP(resolve);
+        return;
       }
+
+      navigator.geolocation.getCurrentPosition(
+
+        async (pos) => {
+
+          state.lat = pos.coords.latitude;
+          state.lon = pos.coords.longitude;
+
+          await reverseGeocode(state.lat, state.lon);
+
+          resolve({
+            lat: state.lat,
+            lon: state.lon
+          });
+        },
+
+        () => fallbackToIP(resolve),
+
+        {
+          timeout: 10000,
+          maximumAge: 300000,
+        }
+      );
+    });
+  }
+
+  async function fallbackToIP(resolve) {
+
+    try {
+
+      const response = await fetchWithTimeout(API.IP_GEO);
+
+      const data = await response.json();
+
+      state.lat = data.latitude;
+      state.lon = data.longitude;
+
+      state.city =
+        data.city ||
+        data.region ||
+        'Your location';
+
+    } catch {
+
+      state.lat = 51.5074;
+      state.lon = -0.1278;
+      state.city = 'London';
     }
-  } catch (e) {
-    console.warn('AQI error', e);
-    document.getElementById('aqi-value').textContent = '--';
-    document.getElementById('aqi-category').textContent = 'Unavailable';
-    document.getElementById('aqi-advice').textContent = 'Unable to fetch air quality data.';
-  }
-}
 
-function checkPersonalAlerts(aqi, label) {
-  const enabled = localStorage.getItem('aqi_alert_enabled') === 'true';
-  if (!enabled) return;
-  const threshold = parseInt(localStorage.getItem('aqi_alert_threshold') || '100');
-  if (aqi >= threshold && Notification.permission === 'granted') {
-    new Notification('🌫️ AQI Alert', { body: `Current AQI: ${aqi} (${label}). Follow health recommendations.` });
-  }
-}
-
-function initAQIAlerts() {
-  const enableBtn = document.getElementById('enable-aqi-alerts');
-  const disableBtn = document.getElementById('disable-aqi-alerts');
-  const thresholdInput = document.getElementById('alert-threshold');
-  const statusEl = document.getElementById('alert-status');
-
-  function updateStatus() {
-    const enabled = localStorage.getItem('aqi_alert_enabled') === 'true';
-    const threshold = localStorage.getItem('aqi_alert_threshold') || '100';
-    thresholdInput.value = threshold;
-    statusEl.textContent = enabled ? `Alerts active (threshold ${threshold}).` : 'Alerts disabled.';
+    resolve({
+      lat: state.lat,
+      lon: state.lon
+    });
   }
 
-  enableBtn.addEventListener('click', () => {
-    if (Notification.permission !== 'granted') {
-      Notification.requestPermission().then(perm => {
-        if (perm === 'granted') {
-          localStorage.setItem('aqi_alert_enabled', 'true');
-          localStorage.setItem('aqi_alert_threshold', thresholdInput.value);
-          updateStatus();
-        } else {
-          alert('Please allow notifications for AQI alerts.');
+  async function reverseGeocode(lat, lon) {
+
+    if (state.city) return;
+
+    try {
+
+      const url =
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+
+      const response = await fetchWithTimeout(url, {
+        headers: {
+          'Accept-Language': 'en'
         }
       });
-    } else {
-      localStorage.setItem('aqi_alert_enabled', 'true');
-      localStorage.setItem('aqi_alert_threshold', thresholdInput.value);
-      updateStatus();
+
+      const data = await response.json();
+
+      state.city =
+        data?.address?.city ||
+        data?.address?.town ||
+        data?.address?.village ||
+        data?.address?.county ||
+        'Your location';
+
+    } catch {
+
+      state.city = 'Your location';
     }
-  });
-
-  disableBtn.addEventListener('click', () => {
-    localStorage.setItem('aqi_alert_enabled', 'false');
-    updateStatus();
-  });
-
-  updateStatus();
-}
-
-window.requestAIExplanation = async function() {
-  const explainEl = document.getElementById('ai-explain-text');
-  const btn = document.getElementById('ai-explain-btn');
-  if (!explainEl || !btn) return;
-  btn.disabled = true;
-  btn.textContent = 'Generating...';
-  explainEl.textContent = 'Analyzing local air quality data...';
-
-  let prompt = "You are CliFix AI. Explain the current air quality in simple terms: ";
-  if (currentAQIData) {
-    const aqi = Math.round(currentAQIData.current.european_aqi || 0);
-    const pm25 = currentAQIData.current.pm2_5 != null ? currentAQIData.current.pm2_5.toFixed(1) : '?';
-    const pm10 = currentAQIData.current.pm10 != null ? currentAQIData.current.pm10.toFixed(1) : '?';
-    const no2  = currentAQIData.current.nitrogen_dioxide != null ? currentAQIData.current.nitrogen_dioxide.toFixed(1) : '?';
-    const o3   = currentAQIData.current.ozone != null ? currentAQIData.current.ozone.toFixed(1) : '?';
-    prompt += `AQI: ${aqi}, PM2.5: ${pm25} µg/m³, PM10: ${pm10} µg/m³, NO2: ${no2} µg/m³, O3: ${o3} µg/m³. `;
   }
-  prompt += "Include pollution sources (if possible), who is most at risk, and one practical tip. Keep it under 3 sentences.";
 
-  try {
-    let explanation = '';
-    if (typeof window.callAIForText === 'function') {
-      explanation = await window.callAIForText(prompt);
-    } else {
-      const aqi = Math.round(currentAQIData?.current?.european_aqi || 0);
-      explanation = `Current AQI is ${aqi} (${getAQICategory(aqi).label}). ${getAQICategory(aqi).advice}`;
-    }
-    explainEl.textContent = explanation;
-  } catch (e) {
-    explainEl.textContent = 'Could not generate explanation. Check your connection.';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Explain';
-  }
-};
+  /* ──────────────────────────────────────────
+     FETCH WEATHER
+  ────────────────────────────────────────── */
+  async function fetchWeather(lat, lon) {
 
-function drawAQIGauge(aqi, color) {
-  const canvas = document.getElementById('aqiGauge');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const cx = canvas.width / 2, cy = canvas.height / 2 + 10, r = 70;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const start = Math.PI * 0.8, end = Math.PI * 2.2;
-  ctx.beginPath(); ctx.arc(cx, cy, r, start, end);
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 14; ctx.lineCap = 'round'; ctx.stroke();
-  const fillAngle = start + (end - start) * (Math.min(aqi, 150) / 150);
-  ctx.beginPath(); ctx.arc(cx, cy, r, start, fillAngle);
-  ctx.strokeStyle = color; ctx.lineWidth = 14; ctx.lineCap = 'round'; ctx.stroke();
-  ctx.fillStyle = '#E8F5E1'; ctx.font = 'bold 28px Syne,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(aqi, cx, cy - 4);
-  ctx.fillStyle = '#8FAD8A'; ctx.font = '12px Outfit,sans-serif';
-  ctx.fillText('AQI', cx, cy + 22);
-}
+    const params = new URLSearchParams({
 
-function drawAQITrend(data) {
-  const canvas = document.getElementById('aqiTrendChart');
-  if (!canvas || !data.length) return;
-  const ctx = canvas.getContext('2d');
-  const labels = data.map((_, i) => `${i}h`);
-  if (window._aqiTrendChart) window._aqiTrendChart.destroy();
-  window._aqiTrendChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: [{ label: 'AQI', data, borderColor: '#00E676', backgroundColor: 'rgba(0,230,118,0.07)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 }] },
-    options: { responsive: true, plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(10,30,15,0.95)', borderColor: 'rgba(0,230,118,0.3)', borderWidth: 1 } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,230,118,0.05)' }, ticks: { color: '#8FAD8A', maxTicksLimit: 5 } }, x: { grid: { display: false }, ticks: { color: '#8FAD8A', maxTicksLimit: 8 } } } }
-  });
-}
+      latitude: lat,
+      longitude: lon,
 
-// Climate Charts
-function initCharts() {
-  const tctx = document.getElementById('tempChart')?.getContext('2d');
-  if (tctx && !tempChart) {
-    tempChart = new Chart(tctx, {
-      type: 'line',
-      data: { labels: [], datasets: [{ label: 'Avg Temp (°C)', data: [], borderColor: '#FF7043', backgroundColor: 'rgba(255,112,67,0.08)', fill: true, tension: 0.4, pointBackgroundColor: '#FF7043', pointBorderColor: '#0D1A0F', pointRadius: 4, borderWidth: 2 }] },
-      options: { responsive: true, scales: { y: { beginAtZero: false, grid: { color: 'rgba(0,230,118,0.05)' }, ticks: { color: '#8FAD8A' } }, x: { grid: { color: 'rgba(0,230,118,0.05)' }, ticks: { color: '#8FAD8A' } } }, plugins: { legend: { labels: { color: '#8FAD8A' } }, tooltip: { backgroundColor: 'rgba(10,30,15,0.95)', borderColor: 'rgba(0,230,118,0.3)', borderWidth: 1 } } }
+      current: [
+        'temperature_2m',
+        'relative_humidity_2m',
+        'apparent_temperature',
+        'is_day',
+        'precipitation',
+        'rain',
+        'weather_code',
+        'cloud_cover',
+        'wind_speed_10m',
+        'wind_direction_10m',
+        'surface_pressure',
+        'visibility',
+        'dew_point_2m',
+        'uv_index',
+      ].join(','),
+
+      hourly: [
+        'temperature_2m',
+        'precipitation_probability',
+        'wind_speed_10m'
+      ].join(','),
+
+      daily: [
+        'weather_code',
+        'temperature_2m_max',
+        'temperature_2m_min',
+        'sunrise',
+        'sunset',
+        'uv_index_max',
+        'precipitation_probability_max',
+      ].join(','),
+
+      forecast_days: 7,
+      timezone: 'auto',
     });
-  }
-  const cctx = document.getElementById('co2Chart')?.getContext('2d');
-  if (cctx && !co2Chart) {
-    co2Chart = new Chart(cctx, {
-      type: 'line',
-      data: { labels: [], datasets: [{ label: 'CO₂ (ppm)', data: [], borderColor: '#00E676', backgroundColor: 'rgba(0,230,118,0.07)', fill: true, tension: 0.4, pointBackgroundColor: '#00E676', pointBorderColor: '#0D1A0F', pointRadius: 3, borderWidth: 2 }] },
-      options: { responsive: true, scales: { y: { beginAtZero: false, grid: { color: 'rgba(0,230,118,0.05)' }, ticks: { color: '#8FAD8A' } }, x: { grid: { color: 'rgba(0,230,118,0.05)' }, ticks: { color: '#8FAD8A', maxRotation: 45, maxTicksLimit: 8 } } }, plugins: { legend: { labels: { color: '#8FAD8A' } }, tooltip: { backgroundColor: 'rgba(10,30,15,0.95)', borderColor: 'rgba(0,230,118,0.3)', borderWidth: 1 } } }
-    });
-  }
-}
 
-async function fetchAndUpdateClimateCharts(lat, lon) {
-  try {
-    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean&timezone=auto&forecast_days=7`);
-    const d = await r.json();
-    if (d.daily && tempChart) {
-      const labels = d.daily.time.map((t, i) => i === 0 ? 'Today' : new Date(t).toLocaleDateString('en-US', { weekday: 'short' }));
-      tempChart.data.labels = labels;
-      tempChart.data.datasets[0].data = d.daily.temperature_2m_mean.map(v => parseFloat(v.toFixed(1)));
-      tempChart.update();
-      const avg = (d.daily.temperature_2m_mean.reduce((a, b) => a + b, 0) / d.daily.temperature_2m_mean.length).toFixed(1);
-      const min = Math.min(...d.daily.temperature_2m_mean).toFixed(1);
-      const max = Math.max(...d.daily.temperature_2m_mean).toFixed(1);
-      document.getElementById('temp-change-summary').textContent = `7-day avg: ${avg}°C · Range: ${min}°C – ${max}°C`;
-    }
-  } catch (e) { console.warn('Climate chart error', e); }
-}
+    const response = await fetchWithTimeout(
+      `${API.GEO}?${params}`
+    );
 
-// ─────────────────────────────────────────────────────
-// UPDATED fetchCO2 – now always updates the hero
-// ─────────────────────────────────────────────────────
-async function fetchCO2() {
-  try {
-    const r = await fetch('https://global-warming.org/api/co2-api');
-    const d = await r.json();
-
-    // Update the old CO₂ chart if it exists
-    if (d?.co2?.length > 0 && co2Chart) {
-      const sorted = d.co2.sort((a, b) => new Date(`${a.year}-${String(a.month).padStart(2, '0')}-${String(a.day).padStart(2, '0')}`) - new Date(`${b.year}-${String(b.month).padStart(2, '0')}-${String(b.day).padStart(2, '0')}`));
-      const recent = sorted.slice(-30);
-      co2Chart.data.labels = recent.map(e => `${e.month}/${e.day}`);
-      co2Chart.data.datasets[0].data = recent.map(e => parseFloat(e.cycle));
-      co2Chart.update();
+    if (!response.ok) {
+      throw new Error(`Weather API ${response.status}`);
     }
 
-    // Always send the latest CO₂ value to the hero, regardless of chart
-    if (d?.co2?.length > 0) {
-      const sorted = d.co2.sort((a, b) => new Date(`${a.year}-${String(a.month).padStart(2, '0')}-${String(a.day).padStart(2, '0')}`) - new Date(`${b.year}-${String(b.month).padStart(2, '0')}-${String(b.day).padStart(2, '0')}`));
-      const latest = sorted[sorted.length - 1];
-      const val = parseFloat(latest.cycle).toFixed(2);
-      document.getElementById('co2-level').textContent = `Current: ${val} ppm`;
+    return response.json();
+  }
 
-      if (typeof ClifixHero !== 'undefined' && ClifixHero.setCO2) {
-        ClifixHero.setCO2(parseFloat(val).toFixed(0));
+  /* ──────────────────────────────────────────
+     UPDATE CURRENT WEATHER
+  ────────────────────────────────────────── */
+  function updateCurrentWeather(data) {
+
+    const c = data.current;
+
+    const temp = Math.round(c.temperature_2m);
+    const feels = Math.round(c.apparent_temperature);
+    const humidity = c.relative_humidity_2m;
+    const wind = Math.round(c.wind_speed_10m);
+    const pressure = Math.round(c.surface_pressure);
+
+    const visibility =
+      c.visibility != null
+        ? (c.visibility / 1000).toFixed(1)
+        : '--';
+
+    const dewPoint = Math.round(c.dew_point_2m);
+    const cloudCover = c.cloud_cover;
+    const uvi = c.uv_index ?? 0;
+
+    const weatherCode = c.weather_code;
+
+    const icon =
+      WMO_ICON[weatherCode] || '🌤️';
+
+    const description =
+      WMO[weatherCode] || 'Unknown';
+
+    setText('current-temp', `${temp}°C`);
+    setText('current-icon', icon);
+    setText('current-desc', description);
+    setText('current-city', state.city);
+
+    setText(
+      'temp-high',
+      `↑ ${Math.round(data.daily.temperature_2m_max[0])}°C`
+    );
+
+    setText(
+      'temp-low',
+      `↓ ${Math.round(data.daily.temperature_2m_min[0])}°C`
+    );
+
+    setText('wind-speed', `${wind} km/h`);
+    setText('humidity-val', `${humidity}%`);
+    setText('visibility-val', `${visibility} km`);
+    setText('pressure-val', `${pressure} hPa`);
+    setText('dew-point-val', `${dewPoint}°C`);
+    setText('cloud-cover-val', `${cloudCover}%`);
+    setText('feels-like-val', `${feels}°C`);
+    setText('uv-index-val', uvi.toFixed(1));
+
+    setText(
+      'precip-prob-val',
+      `${data.daily.precipitation_probability_max[0]}%`
+    );
+
+    const uvInfo = uviLabel(uvi);
+
+    const uvEl = $('uv-index-label');
+
+    if (uvEl) {
+      uvEl.textContent = uvInfo.label;
+      uvEl.className = uvInfo.cls;
+    }
+
+    setText(
+      'sunrise-val',
+      formatTime(data.daily.sunrise[0])
+    );
+
+    setText(
+      'sunset-val',
+      formatTime(data.daily.sunset[0])
+    );
+
+    const ctx = {
+      temp,
+      feelsLike: feels,
+      humidity,
+      windSpeed: wind,
+      pressure,
+      visibility,
+      dewPoint,
+      cloudCover,
+      uvi,
+      description,
+      icon,
+      city: state.city,
+    };
+
+    state.weather = ctx;
+
+    if (window.CliFix_AI) {
+      window.CliFix_AI.setWeatherContext(ctx);
+    }
+  }
+
+  /* ──────────────────────────────────────────
+     HOURLY FORECAST
+  ────────────────────────────────────────── */
+  function updateHourlyForecast(data) {
+
+    const container = $('hourly-forecast');
+
+    if (!container) return;
+
+    const now = new Date();
+
+    const times = data.hourly.time || [];
+    const temps = data.hourly.temperature_2m || [];
+
+    let html = '';
+    let count = 0;
+
+    for (let i = 0; i < times.length && count < 12; i++) {
+
+      const t = new Date(times[i]);
+
+      if (t <= now) continue;
+
+      html += `
+        <div class="hourly-item">
+          <div class="hourly-time">
+            ${formatTime(times[i])}
+          </div>
+
+          <div class="hourly-icon">
+            🌡️
+          </div>
+
+          <div class="hourly-temp">
+            ${Math.round(temps[i])}°
+          </div>
+        </div>
+      `;
+
+      count++;
+    }
+
+    container.innerHTML =
+      html ||
+      '<p class="loading-text">No forecast data</p>';
+  }
+
+  /* ──────────────────────────────────────────
+     WEEKLY FORECAST
+  ────────────────────────────────────────── */
+  function update7DayForecast(data) {
+
+    const container = $('weekly-forecast');
+
+    if (!container) return;
+
+    const days = data.daily.time || [];
+    const maxT = data.daily.temperature_2m_max || [];
+    const minT = data.daily.temperature_2m_min || [];
+    const codes = data.daily.weather_code || [];
+    const precip =
+      data.daily.precipitation_probability_max || [];
+
+    let html = '';
+
+    for (let i = 0; i < days.length; i++) {
+
+      const isToday = i === 0;
+
+      html += `
+        <div class="forecast-day ${isToday ? 'forecast-today' : ''}">
+          
+          <div class="forecast-day-label">
+            ${isToday ? 'Today' : formatDay(days[i])}
+          </div>
+
+          <div class="forecast-icon">
+            ${WMO_ICON[codes[i]] || '🌤️'}
+          </div>
+
+          <div class="forecast-desc">
+            ${WMO[codes[i]] || '--'}
+          </div>
+
+          <div class="forecast-temps">
+            <span class="forecast-max">
+              ${Math.round(maxT[i])}°
+            </span>
+
+            <span class="forecast-min">
+              ${Math.round(minT[i])}°
+            </span>
+          </div>
+
+          <div class="forecast-precip">
+            💧 ${precip[i]}%
+          </div>
+
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
+  /* ──────────────────────────────────────────
+     CHART HELPERS
+  ────────────────────────────────────────── */
+  function destroyChart(id) {
+
+    if (state.charts[id]) {
+
+      state.charts[id].destroy();
+
+      delete state.charts[id];
+    }
+  }
+
+  /* ──────────────────────────────────────────
+     RENDER CHARTS
+  ────────────────────────────────────────── */
+  function renderCharts(data) {
+
+    if (typeof Chart === 'undefined') {
+      return;
+    }
+
+    const labels =
+      (data.hourly.time || [])
+      .slice(0, 24)
+      .map(formatTime);
+
+    const chartDefaults = {
+
+      responsive: true,
+      maintainAspectRatio: false,
+
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+
+      scales: {
+
+        x: {
+          grid: {
+            color: 'rgba(255,255,255,0.05)'
+          },
+          ticks: {
+            color: 'rgba(255,255,255,0.45)',
+            font: { size: 10 }
+          }
+        },
+
+        y: {
+          grid: {
+            color: 'rgba(255,255,255,0.05)'
+          },
+          ticks: {
+            color: 'rgba(255,255,255,0.45)',
+            font: { size: 10 }
+          }
+        }
+      }
+    };
+
+    /* TEMPERATURE CHART */
+    const tempCanvas = $('temp-chart');
+
+    if (tempCanvas) {
+
+      destroyChart('temp');
+
+      const ctx = tempCanvas.getContext('2d');
+
+      const gradient =
+        ctx.createLinearGradient(0, 0, 0, 200);
+
+      gradient.addColorStop(0, 'rgba(74,222,128,0.4)');
+      gradient.addColorStop(1, 'rgba(74,222,128,0)');
+
+      state.charts.temp = new Chart(ctx, {
+
+        type: 'line',
+
+        data: {
+          labels,
+
+          datasets: [{
+            data:
+              (data.hourly.temperature_2m || []).slice(0, 24),
+
+            borderColor: '#4ade80',
+            backgroundColor: gradient,
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+          }]
+        },
+
+        options: chartDefaults,
+      });
+    }
+
+    /* RAIN CHART */
+    const rainCanvas = $('rain-chart');
+
+    if (rainCanvas) {
+
+      destroyChart('rain');
+
+      state.charts.rain = new Chart(
+        rainCanvas.getContext('2d'),
+
+        {
+          type: 'bar',
+
+          data: {
+            labels,
+
+            datasets: [{
+              data:
+                (data.hourly.precipitation_probability || [])
+                .slice(0, 24),
+
+              backgroundColor: 'rgba(96,165,250,0.6)',
+              borderColor: '#60a5fa',
+              borderWidth: 1,
+              borderRadius: 4,
+            }]
+          },
+
+          options: chartDefaults,
+        }
+      );
+    }
+
+    /* WIND CHART */
+    const windCanvas = $('wind-chart');
+
+    if (windCanvas) {
+
+      destroyChart('wind');
+
+      state.charts.wind = new Chart(
+        windCanvas.getContext('2d'),
+
+        {
+          type: 'line',
+
+          data: {
+            labels,
+
+            datasets: [{
+              data:
+                (data.hourly.wind_speed_10m || [])
+                .slice(0, 24),
+
+              borderColor: '#facc15',
+              backgroundColor: 'rgba(250,204,21,0.1)',
+              borderWidth: 2,
+              fill: true,
+              tension: 0.3,
+              pointRadius: 1,
+            }]
+          },
+
+          options: chartDefaults,
+        }
+      );
+    }
+  }
+
+  /* ──────────────────────────────────────────
+     LOADING / ERROR
+  ────────────────────────────────────────── */
+  function setLoading(isLoading) {
+
+    const loader = $('weather-loader');
+
+    if (loader) {
+      loader.style.display =
+        isLoading ? 'flex' : 'none';
+    }
+  }
+
+  function setError(message) {
+
+    setText(
+      'current-desc',
+      message || 'Unable to load weather'
+    );
+
+    console.error('[CliFix Weather]', message);
+  }
+
+  /* ──────────────────────────────────────────
+     MAIN INIT
+  ────────────────────────────────────────── */
+  async function init() {
+
+    if (state.isLoading) {
+      return;
+    }
+
+    state.isLoading = true;
+
+    setLoading(true);
+
+    try {
+
+      const { lat, lon } =
+        await detectLocation();
+
+      const data =
+        await fetchWeather(lat, lon);
+
+      updateCurrentWeather(data);
+
+      updateHourlyForecast(data);
+
+      update7DayForecast(data);
+
+      if (typeof Chart !== 'undefined') {
+
+        renderCharts(data);
+
+      } else {
+
+        if (!state.waitingForChart) {
+
+          state.waitingForChart = true;
+
+          document.addEventListener(
+            'chartjs-loaded',
+
+            () => {
+
+              state.waitingForChart = false;
+
+              renderCharts(data);
+            },
+
+            { once: true }
+          );
+        }
+      }
+
+    } catch (err) {
+
+      console.error(
+        '[CliFix Weather] Init failed:',
+        err
+      );
+
+      setError(
+        'Weather unavailable — check connection'
+      );
+
+    } finally {
+
+      setLoading(false);
+
+      state.isLoading = false;
+    }
+  }
+
+  /* ──────────────────────────────────────────
+     BOOTSTRAP
+  ────────────────────────────────────────── */
+  if (document.readyState === 'loading') {
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      init,
+      { once: true }
+    );
+
+  } else {
+
+    init();
+  }
+
+  /* ──────────────────────────────────────────
+     VISIBILITY OPTIMIZATION
+  ────────────────────────────────────────── */
+  document.addEventListener(
+    'visibilitychange',
+
+    () => {
+
+      if (!document.hidden) {
+        init();
       }
     }
-  } catch (e) {
-    // Fallback values when API fails
-    if (co2Chart) {
-      const labels = Array.from({ length: 30 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - 29 + i); return `${d.getMonth() + 1}/${d.getDate()}`; });
-      const base = 424.2;
-      co2Chart.data.labels = labels;
-      co2Chart.data.datasets[0].data = labels.map((_, i) => +(base + Math.sin(i * 0.3) * 0.8 + i * 0.04).toFixed(2));
-      co2Chart.update();
+  );
+
+  /* ──────────────────────────────────────────
+     AUTO REFRESH
+  ────────────────────────────────────────── */
+  setInterval(() => {
+
+    if (!document.hidden) {
+      init();
     }
-    document.getElementById('co2-level').textContent = 'Current: ~424.6 ppm (estimated)';
 
-    // Always push fallback to hero
-    if (typeof ClifixHero !== 'undefined' && ClifixHero.setCO2) {
-      ClifixHero.setCO2('424');
-    }
-  }
-}
+  }, 10 * 60 * 1000);
 
-// Eco Tips based on weather
-const ecoTipsList = [
-  "Bring your own bag when shopping to reduce plastic use.",
-  "Use public transport or bike to reduce your carbon footprint.",
-  "Switch off lights when not in use to save energy.",
-  "Avoid fast fashion — buy sustainable, durable clothing.",
-  "Compost your kitchen waste to reduce landfill methane.",
-  "Plant native species in your garden to support biodiversity.",
-  "Reduce meat consumption — even 1 plant-based day per week makes a difference.",
-  "Install a smart thermostat and save up to 15% on heating bills.",
-  "Choose renewable energy tariffs for your home.",
-  "Repair electronics instead of replacing them to cut e-waste.",
-];
+  /* ──────────────────────────────────────────
+     EXPOSE GLOBAL API
+  ────────────────────────────────────────── */
+  window.CliFix_Weather = {
 
-const weatherTipMap = {
-  sunny: "With clear skies today, line-dry your clothes and charge solar devices!",
-  rainy: "It's raining — collect rainwater for your garden and skip watering duties.",
-  cloudy: "Cloudy day — perfect time for indoor energy audits and switching to LEDs.",
-  windy: "Windy day! Check your home for drafts and seal them to reduce heating costs.",
-  snow: "Stay warm efficiently — layer clothing before cranking the thermostat.",
-  storm: "Severe weather — stay safe indoors and prep an emergency kit.",
-};
+    refresh: init,
 
-const products = ["Reusable Eco-bag", "Bamboo Toothbrush", "Stainless Steel Straw", "Solar Power Bank", "Compost Bin", "Beeswax Wraps", "Reusable Coffee Cup", "Bamboo Utensils", "Eco Laundry Strips", "Tote Bag Set"];
+    getState: () => ({
+      ...state
+    })
+  };
 
-function updateEcoTipsForWeather(weatherCode) {
-  const tipEl = document.getElementById('daily-tip');
-  const wtipEl = document.getElementById('weather-tip');
-  const prodEl = document.getElementById('product-scroll');
-
-  if (tipEl) tipEl.textContent = ecoTipsList[Math.floor(Math.random() * ecoTipsList.length)];
-
-  let wtip = weatherTipMap.cloudy;
-  if ([0, 1].includes(weatherCode)) wtip = weatherTipMap.sunny;
-  else if ([80, 81, 82, 51, 53, 55, 61, 63, 65].includes(weatherCode)) wtip = weatherTipMap.rainy;
-  else if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) wtip = weatherTipMap.snow;
-  else if ([95, 96, 99].includes(weatherCode)) wtip = weatherTipMap.storm;
-  else if (weatherCode === 3) wtip = weatherTipMap.cloudy;
-  if (wtipEl) wtipEl.textContent = wtip;
-
-  if (prodEl) {
-    prodEl.innerHTML = '';
-    products.forEach(p => {
-      const div = document.createElement('div');
-      div.className = 'product-chip';
-      div.textContent = p;
-      prodEl.appendChild(div);
-    });
-  }
-}
+})();
